@@ -1,0 +1,14 @@
+{
+  "name": "mental-booking",
+  "version": "1.0.0",
+  "description": "MVP agenda salud mental - Node + Express + LowDB + FullCalendar",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "lowdb": "^5.1.0"
+  }
+}

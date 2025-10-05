@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reserva Salud Mental - MVP</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>Reserva gratuita — Salud Mental</h1>
+      <p>Elige un profesional y reserva una hora gratuita.</p>
+      <a href="#booking" class="cta-btn">Reservar Ahora</a>
+    </div>
+  </header>
+
+  <section class="about">
+    <h2>Sobre nuestra clínica</h2>
+    <p>Brindamos apoyo psicológico de manera gratuita y confiable. Nuestro equipo de profesionales está aquí para ayudarte a mejorar tu bienestar emocional.</p>
+    <div class="features">
+      <div class="feature">
+        <h3>Profesionales certificados</h3>
+        <p>Psicólogos y terapeutas con experiencia y formación comprobada.</p>
+      </div>
+      <div class="feature">
+        <h3>Atención personalizada</h3>
+        <p>Adaptamos cada sesión a tus necesidades específicas.</p>
+      </div>
+      <div class="feature">
+        <h3>Flexible y accesible</h3>
+        <p>Reserva horas disponibles según tu conveniencia.</p>
+      </div>
+    </div>
+  </section>
+
+  <main id="booking">
+    <section class="booking-section">
+      <h2>Reserva tu hora</h2>
+      <label>Selecciona un profesional:
+        <select id="professionalSelect">
+          <option value="">--Elige un profesional--</option>
+        </select>
+      </label>
+
+      <label>Selecciona un día:
+        <input type="date" id="daySelect" disabled>
+      </label>
+
+      <div id="hoursContainer"></div>
+
+      <div id="booking-form" class="hidden">
+        <h3>Confirmar reserva</h3>
+        <p id="slotText"></p>
+
+        <label>Tu nombre:
+          <input id="clientName" type="text" required>
+        </label>
+
+        <label>RUT:
+          <input id="clientRUT" type="text" placeholder="12345678-9" required>
+        </label>
+
+        <label>Email:
+          <input id="clientEmail" type="email" required>
+        </label>
+
+        <label>Teléfono:
+          <input id="clientPhone" type="tel" placeholder="+569XXXXXXXX" required>
+        </label>
+
+        <button id="confirmBtn">Reservar</button>
+        <button id="cancelBtn">Cancelar</button>
+        <p id="bookingMsg" class="msg"></p>
+      </div>
+    </section>
+  </main>
+
+  <section class="testimonials">
+    <h2>Testimonios</h2>
+    <div class="testimonial">
+      <p>"Gracias a la atención recibida me siento mucho mejor y más tranquilo." — Juan P.</p>
+    </div>
+    <div class="testimonial">
+      <p>"Un servicio excelente, profesional y muy humano." — Carla M.</p>
+    </div>
+  </section>
+
+  <footer>
+    <small>Proyecto MVP — Gratis</small>
+    <button id="adminLoginBtn" class="admin-btn">Admin</button>
+  </footer>
+
+  <!-- Modal de login Admin -->
+  <div id="adminModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <h3>Login Admin</h3>
+      <label>Usuario: <input type="text" id="adminUser"></label>
+      <label>Contraseña: <input type="password" id="adminPass"></label>
+      <button id="loginBtn">Ingresar</button>
+      <p id="loginMsg"></p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
