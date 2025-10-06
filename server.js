@@ -17,37 +17,47 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
-// Crear tablas si no existen
-(async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS bookings (
-      id BIGSERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      rut TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      professional TEXT NOT NULL,
-      datetime TIMESTAMP NOT NULL,
-      meet_link TEXT
-    );
-  `);
+// ---------------- Inicializar Base de Datos ----------------
+async function initDatabase() {
+  try {
+    await pool.query("SELECT NOW()");
+    console.log("✅ Conectado a Postgres correctamente");
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS availability (
-      id BIGSERIAL PRIMARY KEY,
-      doctor TEXT NOT NULL,
-      date DATE NOT NULL,
-      hour TEXT NOT NULL
-    );
-  `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS bookings (
+        id BIGSERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        rut TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        professional TEXT NOT NULL,
+        datetime TIMESTAMP NOT NULL,
+        meet_link TEXT
+      );
+    `);
 
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS doctors (
-      id BIGSERIAL PRIMARY KEY,
-      name TEXT UNIQUE NOT NULL
-    );
-  `);
-})();
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS availability (
+        id BIGSERIAL PRIMARY KEY,
+        doctor TEXT NOT NULL,
+        date DATE NOT NULL,
+        hour TEXT NOT NULL
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS doctors (
+        id BIGSERIAL PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL
+      );
+    `);
+
+    console.log("✅ Tablas inicializadas correctamente");
+  } catch (err) {
+    console.error("❌ Error al inicializar la base de datos:", err.message);
+    process.exit(1);
+  }
+}
 
 // ---------------- GOOGLE CONFIG ----------------
 const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
@@ -122,8 +132,13 @@ app.get("/oauth2callback", async (req, res) => {
 
 // Obtener reservas
 app.get("/api/bookings", async (req, res) => {
-  const result = await pool.query("SELECT * FROM bookings ORDER BY datetime ASC");
-  res.json(result.rows);
+  try {
+    const result = await pool.query("SELECT * FROM bookings ORDER BY datetime ASC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al obtener reservas" });
+  }
 });
 
 // Crear reserva + evento Google Meet + correo
@@ -183,26 +198,31 @@ app.post("/api/bookings", async (req, res) => {
 
 // ---------------- Disponibilidad ----------------
 app.get("/api/admin/availability", async (req, res) => {
-  const result = await pool.query("SELECT * FROM availability ORDER BY doctor,date,hour ASC");
-  res.json(result.rows);
+  try {
+    const result = await pool.query("SELECT * FROM availability ORDER BY doctor,date,hour ASC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al obtener disponibilidad" });
+  }
 });
 
 app.post("/api/admin/availability", async (req, res) => {
   const { doctor, date, hours } = req.body;
 
-  // Borrar horas antiguas del día antes de actualizar
-  await pool.query("DELETE FROM availability WHERE doctor=$1 AND date=$2", [doctor, date]);
-
-  for (const hour of hours) {
-    if (hour) await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour]);
+  try {
+    await pool.query("DELETE FROM availability WHERE doctor=$1 AND date=$2", [doctor, date]);
+    for (const hour of hours) {
+      if (hour) await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour]);
+    }
+    res.json({ message: "Disponibilidad actualizada" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al actualizar disponibilidad" });
   }
-
-  res.json({ message: "Disponibilidad actualizada" });
 });
 
 // ---------------- DOCTORS ----------------
-
-// Agregar doctor
 app.post("/api/admin/add-doctor", async (req, res) => {
   const { doctor } = req.body;
   if (!doctor) return res.status(400).json({ error: "Falta el nombre del doctor" });
@@ -216,7 +236,6 @@ app.post("/api/admin/add-doctor", async (req, res) => {
   }
 });
 
-// Eliminar doctor y su disponibilidad
 app.post("/api/admin/delete-doctor", async (req, res) => {
   const { doctor } = req.body;
   if (!doctor) return res.status(400).json({ error: "Falta el nombre del doctor" });
@@ -248,6 +267,11 @@ app.get("/", (req, res) => res.sendFile("public/index.html", { root: process.cwd
 app.get("/admin/bookings", (req, res) => res.sendFile("public/admin.html", { root: process.cwd() }));
 
 // ---------------- INICIALIZACIÓN ----------------
-const PORT = process.env.PORT || 3000;
-initGoogleClient();
-app.listen(PORT, "0.0.0.0", () => console.log(`✅ Servidor corriendo en puerto ${PORT}`));
+async function initServer() {
+  await initDatabase();
+  initGoogleClient();
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, "0.0.0.0", () => console.log(`✅ Servidor corriendo en puerto ${PORT}`));
+}
+
+initServer();
