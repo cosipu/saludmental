@@ -253,6 +253,17 @@ app.post("/api/admin/delete-doctor", async (req, res) => {
   }
 });
 
+// ---------------- LISTAR DOCTORES ----------------
+app.get("/api/admin/doctors", async (req, res) => {
+  try {
+    const result = await pool.query("SELECT * FROM doctors ORDER BY name ASC");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error al obtener doctores:", err.message);
+    res.status(500).json({ error: "Error al obtener doctores" });
+  }
+});
+
 // ---------------- ELIMINAR RESERVA ----------------
 app.delete("/api/bookings/:id", async (req, res) => {
   const { id } = req.params;

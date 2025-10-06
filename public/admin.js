@@ -100,59 +100,69 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ---------- FUNCIONES DISPONIBILIDAD ----------
   const loadDoctors = async () => {
-    const res = await fetch("/api/admin/availability");
-    const availability = await res.json();
+    try {
+      const res = await fetch("/api/admin/doctors");
+      const doctorsData = await res.json();
+      const doctors = Array.isArray(doctorsData) ? doctorsData.map(d => d.name) : [];
 
-    const doctors = [...new Set(availability.map(a => a.doctor))];
-
-    // Limpiar selects
-    [selectDoctor, newProfessional, filterProfessional, selectDoctorAdmin].forEach(select => {
-      select.innerHTML = "";
-    });
-
-    doctors.forEach(doc => {
+      // Limpiar selects
       [selectDoctor, newProfessional, filterProfessional, selectDoctorAdmin].forEach(select => {
-        const opt = document.createElement("option");
-        opt.value = doc;
-        opt.textContent = doc;
-        select.appendChild(opt);
+        select.innerHTML = "";
       });
-    });
 
-    // Agregar opción "Todos" para filtro
-    const optionTodos = document.createElement("option");
-    optionTodos.value = "";
-    optionTodos.textContent = "Todos";
-    filterProfessional.prepend(optionTodos);
+      doctors.forEach(doc => {
+        [selectDoctor, newProfessional, filterProfessional, selectDoctorAdmin].forEach(select => {
+          const opt = document.createElement("option");
+          opt.value = doc;
+          opt.textContent = doc;
+          select.appendChild(opt);
+        });
+      });
+
+      // Agregar opción "Todos" para filtro
+      const optionTodos = document.createElement("option");
+      optionTodos.value = "";
+      optionTodos.textContent = "Todos";
+      filterProfessional.prepend(optionTodos);
+    } catch (err) {
+      console.error("❌ Error cargando doctores:", err);
+    }
   };
 
   const loadAvailability = async () => {
-    const res = await fetch("/api/admin/availability");
-    const availability = await res.json();
-    const doctor = selectDoctor.value;
-    const date = doctorDate.value;
+    try {
+      const res = await fetch("/api/admin/availability");
+      const availability = await res.json();
+      const doctor = selectDoctor.value;
+      const date = doctorDate.value;
 
-    const hours = availability.filter(a => a.doctor === doctor && a.date === date).map(a => a.hour);
-    doctorHours.value = hours.join(",");
+      const hours = Array.isArray(availability)
+        ? availability.filter(a => a.doctor === doctor && a.date === date).map(a => a.hour)
+        : [];
 
-    selectHourDelete.innerHTML = "";
-    if (hours.length > 0) {
-      hours.forEach(h => {
+      doctorHours.value = hours.join(",");
+
+      selectHourDelete.innerHTML = "";
+      if (hours.length > 0) {
+        hours.forEach(h => {
+          const opt = document.createElement("option");
+          opt.value = h;
+          opt.textContent = h;
+          selectHourDelete.appendChild(opt);
+        });
+      } else {
         const opt = document.createElement("option");
-        opt.value = h;
-        opt.textContent = h;
+        opt.value = "";
+        opt.textContent = "--No hay horas disponibles--";
         selectHourDelete.appendChild(opt);
-      });
-    } else {
-      const opt = document.createElement("option");
-      opt.value = "";
-      opt.textContent = "--No hay horas disponibles--";
-      selectHourDelete.appendChild(opt);
+      }
+    } catch (err) {
+      console.error("❌ Error cargando disponibilidad:", err);
     }
   };
 
   await loadDoctors();
-  loadAvailability();
+  await loadAvailability();
 
   selectDoctor.addEventListener("change", loadAvailability);
   doctorDate.addEventListener("change", loadAvailability);
@@ -188,7 +198,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const resFetch = await fetch("/api/admin/availability");
     const availability = await resFetch.json();
-    const currentHours = availability.filter(a => a.doctor === doctor && a.date === date).map(a => a.hour);
+    const currentHours = Array.isArray(availability)
+      ? availability.filter(a => a.doctor === doctor && a.date === date).map(a => a.hour)
+      : [];
+
     const newHours = currentHours.filter(h => h !== hourToDelete);
 
     await fetch("/api/admin/availability", {
