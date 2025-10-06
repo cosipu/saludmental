@@ -1,13 +1,22 @@
 // ...existing code...
 // ...existing code...
+
 // --- Login de médicos ---
 const doctorUsers = require("./doctorUsers");
-// ...existing code...
 
-// (debe ir después de la inicialización de 'app')
-// ...existing code...
+// Inicialización de Express y middlewares (debe ir antes de cualquier uso de 'app')
+const express = require("express");
+const cors = require("cors");
+const { Pool } = require("pg");
+const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
+const path = require("path");
+require('dotenv').config();
 
-
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
 
 // Registrar la ruta después de inicializar 'app'
 app.post("/api/doctor-login", (req, res) => {
