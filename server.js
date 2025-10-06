@@ -5,6 +5,7 @@ const path = require("path");
 const { Low } = require("lowdb");
 const { JSONFile } = require("lowdb/node");
 const { google } = require("googleapis");
+const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(cors());
@@ -26,6 +27,7 @@ const TOKEN_PATH = path.join(process.cwd(), "token.json");
 const SCOPES = [
   "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/gmail.send",
 ];
 
 let oAuth2Client;
@@ -40,10 +42,8 @@ function initGoogleClient() {
   const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
   const { client_secret, client_id, redirect_uris } = credentials.web;
 
-  // OAuth global
   oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-  // Cargar token si existe
   if (fs.existsSync(TOKEN_PATH)) {
     const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH));
     oAuth2Client.setCredentials(tokens);
@@ -53,9 +53,24 @@ function initGoogleClient() {
   }
 }
 
-// ---------------- RUTAS DE AUTORIZACIÓN ----------------
+// ---------------- Nodemailer con OAuth2 ----------------
+async function createTransporter() {
+  if (!oAuth2Client) throw new Error("❌ OAuth2 no inicializado");
 
-// Generar URL de autorización
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      type: "OAuth2",
+      user: "saludparachile@gmail.com",
+      clientId: oAuth2Client._clientId,
+      clientSecret: oAuth2Client._clientSecret,
+      refreshToken: oAuth2Client.credentials.refresh_token,
+      accessToken: await oAuth2Client.getAccessToken(),
+    },
+  });
+}
+
+// ---------------- RUTAS DE AUTORIZACIÓN ----------------
 app.get("/auth", (req, res) => {
   if (!oAuth2Client) return res.status(500).send("❌ Google OAuth no inicializado");
 
@@ -68,7 +83,6 @@ app.get("/auth", (req, res) => {
   res.redirect(url);
 });
 
-// Recibir el código de Google y guardar token
 app.get("/oauth2callback", async (req, res) => {
   if (!oAuth2Client) return res.status(500).send("❌ Google OAuth no inicializado");
 
@@ -97,7 +111,7 @@ app.get("/oauth2callback", async (req, res) => {
   // Obtener todas las reservas
   app.get("/api/bookings", (req, res) => res.json(db.data.bookings));
 
-  // Crear reserva + evento Google Meet
+  // Crear reserva + evento Google Meet + enviar correo
   app.post("/api/bookings", async (req, res) => {
     const { name, email, rut, phone, datetime, professional } = req.body;
 
@@ -138,10 +152,28 @@ app.get("/oauth2callback", async (req, res) => {
       booking.meetLink = response.data.hangoutLink;
       await db.write();
 
+      // ---------------- Enviar correo automático usando OAuth2 ----------------
+      const transporter = await createTransporter();
+      const mailOptions = {
+        from: '"Salud Para Chile" <saludparachile@gmail.com>',
+        to: email,
+        subject: `Reserva confirmada con ${professional}`,
+        html: `
+          <p>Hola ${name},</p>
+          <p>Tu reserva con ${professional} ha sido confirmada para <strong>${datetime}</strong>.</p>
+          <p>Accede a la reunión de Google Meet usando este enlace:</p>
+          <a href="${booking.meetLink}" target="_blank">${booking.meetLink}</a>
+          <p>Gracias por confiar en nosotros.</p>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log("📧 Correo enviado a", email);
+
       res.json({ success: true, booking, meetLink: booking.meetLink });
     } catch (error) {
-      console.error("❌ Error al crear evento:", error);
-      res.status(500).json({ error: "Error al crear la reunión en Google Calendar." });
+      console.error("❌ Error al crear evento o enviar correo:", error);
+      res.status(500).json({ error: "Error al crear la reunión o enviar el correo." });
     }
   });
 

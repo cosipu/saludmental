@@ -39,7 +39,7 @@ window.addEventListener("load", async () => {
     return dv === dvEsperado;
   }
 
-  // --- Cargar profesionales desde disponibilidad admin ---
+  // --- Cargar profesionales ---
   const loadProfessionals = async () => {
     const res = await fetch("/api/admin/availability");
     const availability = await res.json();
@@ -58,6 +58,7 @@ window.addEventListener("load", async () => {
     daySelect.disabled = !selectedProfessional;
     hoursContainer.innerHTML = "";
     bookingForm.classList.add("hidden");
+    bookingMsg.textContent = "";
   });
 
   // --- Selección de día ---
@@ -93,6 +94,7 @@ window.addEventListener("load", async () => {
         selectedHour = hour;
         slotText.textContent = `Seleccionaste: ${selectedDate} a las ${selectedHour}`;
         bookingForm.classList.remove("hidden");
+        bookingMsg.textContent = "";
       });
       hoursContainer.appendChild(btn);
     });
@@ -121,17 +123,14 @@ window.addEventListener("load", async () => {
       bookingMsg.textContent = "Debes completar todos los campos";
       return;
     }
-
     if (!validarRUT(rut)) {
       bookingMsg.textContent = "RUT inválido";
       return;
     }
-
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       bookingMsg.textContent = "Email inválido";
       return;
     }
-
     if (!/^\+?\d{8,15}$/.test(phone)) {
       bookingMsg.textContent = "Teléfono inválido";
       return;
@@ -139,29 +138,37 @@ window.addEventListener("load", async () => {
 
     const datetime = `${selectedDate}T${selectedHour}:00`;
 
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        email,
-        rut,
-        phone,
-        professional: selectedProfessional,
-        datetime
-      })
-    });
+    try {
+      // --- Mostrar spinner ---
+      bookingMsg.innerHTML = '⏳ Procesando reserva...';
+      confirmBtn.disabled = true;
 
-    if (res.ok) {
-      alert("Reserva creada ✅");
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, rut, phone, professional: selectedProfessional, datetime }),
+      });
+
+      if (!res.ok) throw new Error("Error al crear la reserva");
+
+      const data = await res.json();
+
+      // --- Mostrar resultado ---
+      bookingMsg.innerHTML = `
+        ✅ Reserva creada y correo enviado.<br>
+        🔗 Accede a la reunión de Google Meet: <a href="${data.meetLink}" target="_blank">${data.meetLink}</a>
+      `;
       bookingForm.classList.add("hidden");
       clientName.value = "";
       clientEmail.value = "";
       clientRUT.value = "";
       clientPhone.value = "";
       daySelect.dispatchEvent(new Event("change")); // refrescar slots
-    } else {
-      bookingMsg.textContent = "Error al crear la reserva";
+    } catch (err) {
+      console.error(err);
+      bookingMsg.textContent = "❌ Error al crear la reserva o enviar el correo";
+    } finally {
+      confirmBtn.disabled = false;
     }
   });
 
@@ -172,13 +179,9 @@ window.addEventListener("load", async () => {
   const loginBtn = document.getElementById("loginBtn");
   const loginMsg = document.getElementById("loginMsg");
 
-  // Abrir modal
   adminBtn.addEventListener("click", () => modal.classList.remove("hidden"));
-
-  // Cerrar modal
   closeModal.addEventListener("click", () => modal.classList.add("hidden"));
 
-  // Login admin (prototipo)
   loginBtn.addEventListener("click", () => {
     const user = document.getElementById("adminUser").value;
     const pass = document.getElementById("adminPass").value;
