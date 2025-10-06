@@ -1,4 +1,12 @@
 window.addEventListener("load", async () => {
+  // --- Ocultar modal de reserva exitosa al cargar ---
+  const bookingModal = document.getElementById("bookingModal");
+  const closeBookingModal = document.getElementById("closeBookingModal");
+  if (bookingModal) bookingModal.classList.add("hidden");
+  if (closeBookingModal) closeBookingModal.onclick = () => bookingModal.classList.add("hidden");
+  window.addEventListener("click", e => {
+    if (e.target === bookingModal) bookingModal.classList.add("hidden");
+  });
   // --- Elementos de reserva ---
   const professionalSelect = document.getElementById("professionalSelect");
   const daySelect = document.getElementById("daySelect");
