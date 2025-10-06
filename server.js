@@ -1,4 +1,6 @@
-// No necesitas dotenv si Railway ya maneja las variables de entorno
+
+// Cargar variables de entorno desde .env si existe (útil para desarrollo local)
+require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
@@ -13,7 +15,7 @@ app.use(express.static("public"));
 
 // ---------------- DATABASE POSTGRES ----------------
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:ksYDeYsPSAUnIzDFirRVtXRuOPHtkdXI@switchback.proxy.rlwy.net:36049/railway',
   ssl: { rejectUnauthorized: false },
 });
 
