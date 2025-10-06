@@ -5,14 +5,11 @@ const doctorUsers = require("./doctorUsers");
 // ...existing code...
 
 // (debe ir después de la inicialización de 'app')
-
 // ...existing code...
+
+
 
 // Registrar la ruta después de inicializar 'app'
-// (esto debe ir después de 'const app = express();')
-
-// ...existing code...
-
 app.post("/api/doctor-login", (req, res) => {
   const { name, password } = req.body;
   const user = doctorUsers.find(u => u.name === name && u.password === password);
@@ -23,19 +20,7 @@ app.post("/api/doctor-login", (req, res) => {
   }
 });
 
-// Cargar variables de entorno desde .env si existe (útil para desarrollo local)
-require('dotenv').config();
-const express = require("express");
-const cors = require("cors");
-const { Pool } = require("pg");
-const { google } = require("googleapis");
-const nodemailer = require("nodemailer");
-const path = require("path");
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static("public"));
 
 // ---------------- DATABASE POSTGRES ----------------
 const pool = new Pool({
