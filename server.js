@@ -155,14 +155,20 @@ app.post("/api/bookings", async (req, res) => {
   try {
     const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
     // datetime viene como 'YYYY-MM-DDTHH:mm:00'
-    // Construir fin sumando 30 minutos
+    // Construir fin sumando 30 minutos exactos
     const [datePart, timePart] = datetime.split("T");
     const [hour, minute] = timePart.split(":");
-    const startDateTime = `${datePart}T${hour}:${minute}:00`;
+    // Crear objeto Date en zona horaria de Chile (UTC-3)
+    const startDate = new Date(`${datePart}T${hour}:${minute}:00-03:00`);
     // Sumar 30 minutos
-    const startDate = new Date(`${datePart}T${hour}:${minute}:00-03:00`); // Chile UTC-3
     const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
-    const endDateTime = endDate.toISOString().slice(0, 19); // 'YYYY-MM-DDTHH:mm:ss'
+    // Formatear a 'YYYY-MM-DDTHH:mm:00'
+    function formatDateLocal(date) {
+      const pad = n => n.toString().padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+    }
+    const startDateTime = formatDateLocal(startDate);
+    const endDateTime = formatDateLocal(endDate);
 
     const event = {
       summary: `Consulta con ${professional}`,
@@ -189,19 +195,28 @@ app.post("/api/bookings", async (req, res) => {
       [name, email, rut, phone, professional, datetime, meetLink]
     );
 
-    const transporter = await createTransporter();
-    await transporter.sendMail({
-      from: '"Salud Para Chile" <saludparachile@gmail.com>',
-      to: email,
-      subject: `Reserva confirmada con ${professional}`,
-      html: `<p>Hola ${name},</p>
-             <p>Tu reserva con ${professional} ha sido confirmada para <strong>${datetime}</strong>.</p>
-             <p>Accede a la reunión de Google Meet usando este enlace:</p>
-             <a href="${meetLink}" target="_blank">${meetLink}</a>
-             <p>Gracias por confiar en nosotros.</p>`,
-    });
-
+    // Responder primero al usuario
     res.json({ success: true, booking: insert.rows[0], meetLink });
+
+    // Enviar correo en segundo plano
+    (async () => {
+      try {
+        const transporter = await createTransporter();
+        await transporter.sendMail({
+          from: '"Salud Para Chile" <saludparachile@gmail.com>',
+          to: email,
+          subject: `Reserva confirmada con ${professional}`,
+          html: `<p>Hola ${name},</p>
+                 <p>Tu reserva con ${professional} ha sido confirmada para <strong>${datetime}</strong>.</p>
+                 <p>Accede a la reunión de Google Meet usando este enlace:</p>
+                 <a href="${meetLink}" target="_blank">${meetLink}</a>
+                 <p>Gracias por confiar en nosotros.</p>`,
+        });
+        console.log(`✅ Correo enviado a ${email}`);
+      } catch (err) {
+        console.error("❌ Error al enviar correo en segundo plano:", err);
+      }
+    })();
   } catch (err) {
     console.error("❌ Error al crear la reunión o enviar el correo:", err);
     res.status(500).json({ error: "Error al crear la reunión o enviar el correo.", details: err.message });
