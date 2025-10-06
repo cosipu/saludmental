@@ -21,8 +21,8 @@ const pool = new Pool({
 async function initDatabase() {
   try {
     console.log("🔄 Probando conexión a la base de datos...");
-    await pool.query("SELECT NOW()");
-    console.log("✅ Conectado a Postgres correctamente");
+    const res = await pool.query("SELECT NOW()");
+    console.log("✅ Conectado a Postgres correctamente:", res.rows[0]);
 
     console.log("🔄 Creando tablas si no existen...");
     await pool.query(`
@@ -56,8 +56,8 @@ async function initDatabase() {
 
     console.log("✅ Tablas inicializadas correctamente");
   } catch (err) {
-    console.error("❌ Error al inicializar la base de datos:", err.message);
-    console.warn("⚠️ Continuando sin interrumpir el servidor. Revisa DATABASE_URL y tu DB.");
+    console.error("❌ Error al inicializar la base de datos:", err);
+    throw err; // Terminar si falla la DB
   }
 }
 
@@ -86,7 +86,7 @@ function initGoogleClient() {
       console.log("⚠️ GOOGLE_TOKEN no configurado — autoriza visitando /auth");
     }
   } catch (err) {
-    console.error("❌ Error al inicializar Google OAuth:", err.message);
+    console.error("❌ Error al inicializar Google OAuth:", err);
   }
 }
 
@@ -129,7 +129,7 @@ app.get("/oauth2callback", async (req, res) => {
     console.log(JSON.stringify(tokens));
     res.send("✅ Autenticación completada. Copia el token mostrado en la consola a GOOGLE_TOKEN.");
   } catch (err) {
-    console.error("❌ Error al procesar la autenticación:", err.message);
+    console.error("❌ Error al procesar la autenticación:", err);
     res.status(500).send("Error al procesar la autenticación.");
   }
 });
@@ -138,7 +138,7 @@ app.get("/oauth2callback", async (req, res) => {
 app.get("/api/bookings", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM bookings ORDER BY datetime ASC");
-    res.json(result.rows);
+    res.json(result.rows || []);
   } catch (err) {
     console.error("❌ Error al obtener reservas:", err);
     res.status(500).json({ error: "Error al obtener reservas", details: err.message });
@@ -203,7 +203,7 @@ app.post("/api/bookings", async (req, res) => {
 app.get("/api/admin/availability", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM availability ORDER BY doctor,date,hour ASC");
-    res.json(result.rows);
+    res.json(result.rows || []);
   } catch (err) {
     console.error("❌ Error al obtener disponibilidad:", err);
     res.status(500).json({ error: "Error al obtener disponibilidad", details: err.message });
@@ -215,9 +215,9 @@ app.post("/api/admin/availability", async (req, res) => {
   if (!doctor || !date || !Array.isArray(hours)) return res.status(400).json({ error: "Datos inválidos" });
 
   try {
-    await pool.query("DELETE FROM availability WHERE doctor=$1 AND date=$2", [doctor, date]);
+    await pool.query("DELETE FROM availability WHERE doctor=$1 AND date=$2", [doctor.trim(), date]);
     for (const hour of hours) {
-      if (hour && hour.trim()) await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour.trim()]);
+      if (hour && hour.trim()) await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor.trim(), date, hour.trim()]);
     }
     res.json({ message: "Disponibilidad actualizada" });
   } catch (err) {
@@ -233,8 +233,7 @@ app.post("/api/admin/add-doctor", async (req, res) => {
 
   try {
     const result = await pool.query("INSERT INTO doctors(name) VALUES($1) ON CONFLICT DO NOTHING RETURNING *", [doctor.trim()]);
-    console.log("✅ Doctor agregado:", result.rows);
-    res.json({ success: true, message: `Doctor ${doctor.trim()} agregado correctamente`, doctor: result.rows[0] });
+    res.json({ success: true, message: `Doctor ${doctor.trim()} agregado correctamente`, doctor: result.rows[0] || null });
   } catch (err) {
     console.error("❌ Error al agregar doctor:", err);
     res.status(500).json({ error: "Error al agregar doctor", details: err.message });
@@ -255,11 +254,10 @@ app.post("/api/admin/delete-doctor", async (req, res) => {
   }
 });
 
-// ---------------- LISTAR DOCTORES ----------------
 app.get("/api/admin/doctors", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM doctors ORDER BY name ASC");
-    res.json(result.rows);
+    res.json(result.rows || []);
   } catch (err) {
     console.error("❌ Error al obtener doctores:", err);
     res.status(500).json({ error: "Error al obtener doctores", details: err.message });
@@ -285,8 +283,13 @@ app.get("/admin/bookings", (req, res) => res.sendFile("public/admin.html", { roo
 // ---------------- INICIALIZACIÓN ----------------
 async function initServer() {
   console.log("🚀 Inicializando servidor...");
-  await initDatabase();
-  initGoogleClient();
+  try {
+    await initDatabase();
+    initGoogleClient();
+  } catch (err) {
+    console.error("❌ Error crítico al inicializar el servidor:", err);
+    process.exit(1);
+  }
 
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, "0.0.0.0", () => console.log(`✅ Servidor corriendo en puerto ${PORT}`));
