@@ -87,7 +87,7 @@ window.addEventListener("load", async () => {
     const resAvailability = await fetch(`/api/admin/availability`);
     const availability = await resAvailability.json();
     const slotsForDay = availability
-      .filter(a => a.doctor === selectedProfessional && a.date === selectedDate)
+      .filter(a => a.doctor === selectedProfessional && String(a.date).slice(0,10) === selectedDate)
       .map(a => a.hour);
 
     if (slotsForDay.length === 0) {
