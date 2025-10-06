@@ -93,8 +93,9 @@
 
 
   <footer>
-    <small>Proyecto MVP — Gratis</small>
-    <button id="adminLoginBtn" class="admin-btn">Admin</button>
+  <small>Proyecto MVP — Gratis</small>
+  <button id="adminLoginBtn" class="admin-btn">Admin</button>
+  <button id="doctorLoginBtn" class="doctor-btn">Médico</button>
   </footer>
 
   <!-- Modal de login Admin -->
@@ -106,6 +107,17 @@
       <label>Contraseña: <input type="password" id="adminPass"></label>
       <button id="loginBtn">Ingresar</button>
       <p id="loginMsg"></p>
+    </div>
+  </div>
+  <!-- Modal de login Médico -->
+  <div id="doctorModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeDoctorModal" class="close">&times;</span>
+      <h3>Login Médico</h3>
+      <label>Nombre: <input type="text" id="doctorUser"></label>
+      <label>Contraseña: <input type="password" id="doctorPass"></label>
+      <button id="doctorLoginBtnModal">Ingresar</button>
+      <p id="doctorLoginMsg"></p>
     </div>
   </div>
 

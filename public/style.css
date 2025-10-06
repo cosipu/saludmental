@@ -1,3 +1,68 @@
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 700px) {
+  header.hero-banner {
+    min-height: 180px;
+    padding: 0;
+  }
+  .hero-content {
+    padding: 24px 8px;
+    text-align: center;
+  }
+  .hero-content h1 {
+    font-size: 1.3rem;
+  }
+  .hero-content p {
+    font-size: 1rem;
+  }
+  .cta-btn {
+    font-size: 1rem;
+    padding: 10px 18px;
+  }
+  .about {
+    padding: 18px 8px;
+  }
+  .features {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .feature {
+    padding: 12px 8px;
+    font-size: 1rem;
+  }
+  .booking-section {
+    padding: 18px 8px;
+    max-width: 100%;
+  }
+  #booking-form {
+    padding: 12px 8px;
+    font-size: 1rem;
+  }
+  #bookingModal .modal-content,
+  #adminModal .modal-content,
+  #doctorModal .modal-content {
+    max-width: 95vw;
+    padding: 18px 8px;
+    font-size: 1rem;
+  }
+  #closeBookingModal, #closeModal, #closeDoctorModal {
+    top: 6px; right: 10px;
+    font-size: 20px;
+  }
+  footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 8px;
+    font-size: 0.95rem;
+  }
+  .admin-btn, .doctor-btn {
+    font-size: 1rem;
+    padding: 8px 14px;
+    margin: 4px 0;
+  }
+  label, input, select, button {
+    font-size: 1rem;
+  }
+}
 /* MODAL DE CONFIRMACIÓN DE RESERVA */
 #bookingModal {
   position: fixed;

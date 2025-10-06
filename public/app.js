@@ -1,4 +1,41 @@
 window.addEventListener("load", async () => {
+  // --- Login Médico modal ---
+  const doctorBtn = document.getElementById("doctorLoginBtn");
+  const doctorModal = document.getElementById("doctorModal");
+  const closeDoctorModal = document.getElementById("closeDoctorModal");
+  const doctorLoginBtnModal = document.getElementById("doctorLoginBtnModal");
+  const doctorLoginMsg = document.getElementById("doctorLoginMsg");
+
+  doctorBtn.addEventListener("click", () => doctorModal.classList.remove("hidden"));
+  closeDoctorModal.addEventListener("click", () => doctorModal.classList.add("hidden"));
+  doctorLoginBtnModal.addEventListener("click", async () => {
+    const name = document.getElementById("doctorUser").value;
+    const pass = document.getElementById("doctorPass").value;
+    doctorLoginMsg.textContent = "";
+    if (!name || !pass) {
+      doctorLoginMsg.textContent = "Debes ingresar nombre y contraseña";
+      doctorLoginMsg.style.color = "red";
+      return;
+    }
+    // Llamar al backend para validar login médico
+    try {
+      const res = await fetch("/api/doctor-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, password: pass })
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = "/doctor";
+      } else {
+        doctorLoginMsg.textContent = data.message || "Credenciales incorrectas";
+        doctorLoginMsg.style.color = "red";
+      }
+    } catch (err) {
+      doctorLoginMsg.textContent = "Error de conexión";
+      doctorLoginMsg.style.color = "red";
+    }
+  });
   // Ocultar modal de reserva al cargar la página (solo una vez)
   const bookingModal = document.getElementById("bookingModal");
   const closeBookingModal = document.getElementById("closeBookingModal");
