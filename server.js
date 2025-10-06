@@ -139,7 +139,12 @@ app.get("/oauth2callback", async (req, res) => {
 // ---------------- API PRINCIPAL ----------------
 app.get("/api/bookings", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM bookings ORDER BY datetime ASC");
+    // Seleccionar todos los campos relevantes para el admin
+    const result = await pool.query(`
+      SELECT id, name, email, rut, phone, professional, to_char(datetime, 'YYYY-MM-DD"T"HH24:MI') as datetime, meet_link
+      FROM bookings
+      ORDER BY datetime ASC
+    `);
     res.json(result.rows || []);
   } catch (err) {
     console.error("❌ Error al obtener reservas:", err);

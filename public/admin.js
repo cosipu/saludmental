@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td>${b.phone || "-"}</td>
           <td>${b.email || "-"}</td>
           <td>${b.datetime}</td>
+          <td>${b.meet_link ? `<a href="${b.meet_link}" target="_blank">Enlace</a>` : '-'}</td>
           <td><button class="deleteBtn" data-id="${b.id}">Eliminar</button></td>
         `;
         tableBody.appendChild(tr);
