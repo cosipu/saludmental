@@ -140,8 +140,8 @@ app.get("/api/bookings", async (req, res) => {
     const result = await pool.query("SELECT * FROM bookings ORDER BY datetime ASC");
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener reservas:", err.message);
-    res.status(500).json({ error: "Error al obtener reservas" });
+    console.error("❌ Error al obtener reservas:", err);
+    res.status(500).json({ error: "Error al obtener reservas", details: err.message });
   }
 });
 
@@ -194,8 +194,8 @@ app.post("/api/bookings", async (req, res) => {
 
     res.json({ success: true, booking: insert.rows[0], meetLink });
   } catch (err) {
-    console.error("❌ Error al crear la reunión o enviar el correo:", err.message);
-    res.status(500).json({ error: "Error al crear la reunión o enviar el correo." });
+    console.error("❌ Error al crear la reunión o enviar el correo:", err);
+    res.status(500).json({ error: "Error al crear la reunión o enviar el correo.", details: err.message });
   }
 });
 
@@ -205,51 +205,53 @@ app.get("/api/admin/availability", async (req, res) => {
     const result = await pool.query("SELECT * FROM availability ORDER BY doctor,date,hour ASC");
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener disponibilidad:", err.message);
-    res.status(500).json({ error: "Error al obtener disponibilidad" });
+    console.error("❌ Error al obtener disponibilidad:", err);
+    res.status(500).json({ error: "Error al obtener disponibilidad", details: err.message });
   }
 });
 
 app.post("/api/admin/availability", async (req, res) => {
   const { doctor, date, hours } = req.body;
+  if (!doctor || !date || !Array.isArray(hours)) return res.status(400).json({ error: "Datos inválidos" });
 
   try {
     await pool.query("DELETE FROM availability WHERE doctor=$1 AND date=$2", [doctor, date]);
     for (const hour of hours) {
-      if (hour) await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour]);
+      if (hour && hour.trim()) await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour.trim()]);
     }
     res.json({ message: "Disponibilidad actualizada" });
   } catch (err) {
-    console.error("❌ Error al actualizar disponibilidad:", err.message);
-    res.status(500).json({ error: "Error al actualizar disponibilidad" });
+    console.error("❌ Error al actualizar disponibilidad:", err);
+    res.status(500).json({ error: "Error al actualizar disponibilidad", details: err.message });
   }
 });
 
 // ---------------- DOCTORS ----------------
 app.post("/api/admin/add-doctor", async (req, res) => {
   const { doctor } = req.body;
-  if (!doctor) return res.status(400).json({ error: "Falta el nombre del doctor" });
+  if (!doctor || !doctor.trim()) return res.status(400).json({ error: "Falta el nombre del doctor" });
 
   try {
-    await pool.query("INSERT INTO doctors(name) VALUES($1) ON CONFLICT DO NOTHING", [doctor]);
-    res.json({ success: true, message: `Doctor ${doctor} agregado correctamente` });
+    const result = await pool.query("INSERT INTO doctors(name) VALUES($1) ON CONFLICT DO NOTHING RETURNING *", [doctor.trim()]);
+    console.log("✅ Doctor agregado:", result.rows);
+    res.json({ success: true, message: `Doctor ${doctor.trim()} agregado correctamente`, doctor: result.rows[0] });
   } catch (err) {
-    console.error("❌ Error al agregar doctor:", err.message);
-    res.status(500).json({ error: "Error al agregar doctor" });
+    console.error("❌ Error al agregar doctor:", err);
+    res.status(500).json({ error: "Error al agregar doctor", details: err.message });
   }
 });
 
 app.post("/api/admin/delete-doctor", async (req, res) => {
   const { doctor } = req.body;
-  if (!doctor) return res.status(400).json({ error: "Falta el nombre del doctor" });
+  if (!doctor || !doctor.trim()) return res.status(400).json({ error: "Falta el nombre del doctor" });
 
   try {
-    await pool.query("DELETE FROM availability WHERE doctor=$1", [doctor]);
-    await pool.query("DELETE FROM doctors WHERE name=$1", [doctor]);
-    res.json({ success: true, message: `Doctor ${doctor} eliminado` });
+    await pool.query("DELETE FROM availability WHERE doctor=$1", [doctor.trim()]);
+    await pool.query("DELETE FROM doctors WHERE name=$1", [doctor.trim()]);
+    res.json({ success: true, message: `Doctor ${doctor.trim()} eliminado` });
   } catch (err) {
-    console.error("❌ Error al eliminar doctor:", err.message);
-    res.status(500).json({ error: "Error al eliminar doctor" });
+    console.error("❌ Error al eliminar doctor:", err);
+    res.status(500).json({ error: "Error al eliminar doctor", details: err.message });
   }
 });
 
@@ -259,8 +261,8 @@ app.get("/api/admin/doctors", async (req, res) => {
     const result = await pool.query("SELECT * FROM doctors ORDER BY name ASC");
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error al obtener doctores:", err.message);
-    res.status(500).json({ error: "Error al obtener doctores" });
+    console.error("❌ Error al obtener doctores:", err);
+    res.status(500).json({ error: "Error al obtener doctores", details: err.message });
   }
 });
 
@@ -271,8 +273,8 @@ app.delete("/api/bookings/:id", async (req, res) => {
     await pool.query("DELETE FROM bookings WHERE id=$1", [id]);
     res.json({ success: true });
   } catch (err) {
-    console.error("❌ Error al eliminar reserva:", err.message);
-    res.status(500).json({ error: "Error al eliminar reserva" });
+    console.error("❌ Error al eliminar reserva:", err);
+    res.status(500).json({ error: "Error al eliminar reserva", details: err.message });
   }
 });
 
