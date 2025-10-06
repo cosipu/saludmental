@@ -154,21 +154,18 @@ app.post("/api/bookings", async (req, res) => {
 
   try {
     const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
-    // datetime viene como 'YYYY-MM-DDTHH:mm:00'
-    // Construir fin sumando 30 minutos exactos
-    const [datePart, timePart] = datetime.split("T");
-    const [hour, minute] = timePart.split(":");
-    // Crear objeto Date en zona horaria de Chile (UTC-3)
-    const startDate = new Date(`${datePart}T${hour}:${minute}:00-03:00`);
-    // Sumar 30 minutos
-    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
-    // Formatear a 'YYYY-MM-DDTHH:mm:00'
-    function formatDateLocal(date) {
+
+    // datetime viene como 'YYYY-MM-DDTHH:mm:00' (hora local Chile)
+    // Guardar en la base de datos exactamente como lo selecciona el usuario
+    // Calcular hora final sumando 30 minutos
+    function addMinutesToTimeStr(dateTimeStr, minutes) {
+      const date = new Date(dateTimeStr + ':00-03:00'); // Forzar zona Chile
+      date.setMinutes(date.getMinutes() + minutes);
       const pad = n => n.toString().padStart(2, '0');
       return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
     }
-    const startDateTime = formatDateLocal(startDate);
-    const endDateTime = formatDateLocal(endDate);
+    const startDateTime = datetime;
+    const endDateTime = addMinutesToTimeStr(datetime, 30);
 
     const event = {
       summary: `Consulta con ${professional}`,
@@ -190,9 +187,10 @@ app.post("/api/bookings", async (req, res) => {
 
     const meetLink = response.data.hangoutLink;
 
+    // Guardar la hora local seleccionada (no UTC)
     const insert = await pool.query(
       `INSERT INTO bookings(name,email,rut,phone,professional,datetime,meet_link) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [name, email, rut, phone, professional, datetime, meetLink]
+      [name, email, rut, phone, professional, startDateTime, meetLink]
     );
 
     // Responder primero al usuario
