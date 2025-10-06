@@ -100,8 +100,14 @@ window.addEventListener("load", async () => {
     const bookings = await resBookings.json();
 
     const availableSlots = slotsForDay.filter(hour => {
-      const datetime = `${selectedDate}T${hour}:00`;
-      return !bookings.some(b => b.professional === selectedProfessional && b.datetime === datetime);
+      const datetime = `${selectedDate}T${hour}`;
+      // Permitir coincidencia aunque b.datetime tenga segundos o milisegundos
+      return !bookings.some(b => {
+        if (b.professional !== selectedProfessional) return false;
+        // Tomar solo YYYY-MM-DDTHH:mm de la reserva
+        const booked = String(b.datetime).slice(0,16);
+        return booked === datetime;
+      });
     });
 
     if (availableSlots.length === 0) {

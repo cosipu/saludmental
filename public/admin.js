@@ -42,8 +42,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     tableBody.innerHTML = "";
     bookings
-      .filter(b => !profFilter || b.professional === profFilter)
-      .filter(b => !dateFilter || b.datetime.startsWith(dateFilter))
+      .filter(b => {
+        if (!profFilter) return true;
+        // Coincidencia insensible a mayúsculas y espacios
+        return (b.professional || '').toLowerCase().trim() === profFilter.toLowerCase().trim();
+      })
+      .filter(b => {
+        if (!dateFilter) return true;
+        // Coincidencia solo por fecha (ignora hora/segundos)
+        return String(b.datetime).slice(0,10) === dateFilter;
+      })
       .forEach(b => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
