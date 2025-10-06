@@ -1,5 +1,5 @@
 window.addEventListener("load", async () => {
-  // --- Ocultar modal de reserva exitosa al cargar ---
+  // Ocultar modal de reserva al cargar la página (solo una vez)
   const bookingModal = document.getElementById("bookingModal");
   const closeBookingModal = document.getElementById("closeBookingModal");
   if (bookingModal) bookingModal.classList.add("hidden");
@@ -193,14 +193,8 @@ window.addEventListener("load", async () => {
         ✅ Reserva creada y correo enviado.<br>
         🔗 Accede a la reunión de Google Meet: <a href="${data.meetLink}" target="_blank">${data.meetLink}</a>
       `;
-      // Mostrar modal de confirmación
-      const bookingModal = document.getElementById("bookingModal");
-      const closeBookingModal = document.getElementById("closeBookingModal");
-      bookingModal.classList.remove("hidden");
-      closeBookingModal.onclick = () => bookingModal.classList.add("hidden");
-      window.onclick = e => {
-        if (e.target === bookingModal) bookingModal.classList.add("hidden");
-      };
+  // Mostrar modal de confirmación
+  bookingModal.classList.remove("hidden");
       bookingForm.classList.add("hidden");
       clientName.value = "";
       clientEmail.value = "";
