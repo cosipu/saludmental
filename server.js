@@ -1,6 +1,17 @@
 // ...existing code...
+// ...existing code...
 // --- Login de médicos ---
 const doctorUsers = require("./doctorUsers");
+// ...existing code...
+
+// (debe ir después de la inicialización de 'app')
+
+// ...existing code...
+
+// Registrar la ruta después de inicializar 'app'
+// (esto debe ir después de 'const app = express();')
+
+// ...existing code...
 
 app.post("/api/doctor-login", (req, res) => {
   const { name, password } = req.body;
