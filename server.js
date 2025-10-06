@@ -159,13 +159,27 @@ app.post("/api/bookings", async (req, res) => {
     // Guardar en la base de datos exactamente como lo selecciona el usuario
     // Calcular hora final sumando 30 minutos
     function addMinutesToTimeStr(dateTimeStr, minutes) {
-      const date = new Date(dateTimeStr + ':00-03:00'); // Forzar zona Chile
-      date.setMinutes(date.getMinutes() + minutes);
+      // dateTimeStr: 'YYYY-MM-DDTHH:mm' o 'YYYY-MM-DDTHH:mm:00'
+      let [datePart, timePart] = dateTimeStr.split('T');
+      if (!timePart) return dateTimeStr; // fallback
+      let [hour, minute] = timePart.split(':');
+      hour = parseInt(hour, 10);
+      minute = parseInt(minute, 10);
+      let totalMinutes = hour * 60 + minute + minutes;
+      let newHour = Math.floor(totalMinutes / 60);
+      let newMinute = totalMinutes % 60;
+      // Ajustar día si pasa de las 24h
+      let dateObj = new Date(datePart);
+      if (newHour >= 24) {
+        dateObj.setDate(dateObj.getDate() + Math.floor(newHour / 24));
+        newHour = newHour % 24;
+      }
       const pad = n => n.toString().padStart(2, '0');
-      return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+      return `${dateObj.getFullYear()}-${pad(dateObj.getMonth()+1)}-${pad(dateObj.getDate())}T${pad(newHour)}:${pad(newMinute)}:00`;
     }
-    const startDateTime = datetime;
-    const endDateTime = addMinutesToTimeStr(datetime, 30);
+    // Asegurar formato correcto para startDateTime
+    const startDateTime = datetime.length === 16 ? datetime + ':00' : datetime;
+    const endDateTime = addMinutesToTimeStr(startDateTime, 30);
 
     const event = {
       summary: `Consulta con ${professional}`,
