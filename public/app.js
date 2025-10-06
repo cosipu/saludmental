@@ -2,10 +2,13 @@ window.addEventListener("load", async () => {
   // Ocultar modal de reserva al cargar la página (solo una vez)
   const bookingModal = document.getElementById("bookingModal");
   const closeBookingModal = document.getElementById("closeBookingModal");
-  if (bookingModal) bookingModal.classList.add("hidden");
-  if (closeBookingModal) closeBookingModal.onclick = () => bookingModal.classList.add("hidden");
-  window.addEventListener("click", e => {
-    if (e.target === bookingModal) bookingModal.classList.add("hidden");
+  // Asegura que el modal SIEMPRE esté oculto al cargar
+  if (bookingModal) bookingModal.style.display = "none";
+  if (closeBookingModal) closeBookingModal.onclick = () => {
+    bookingModal.style.display = "none";
+  };
+  bookingModal.addEventListener("click", e => {
+    if (e.target === bookingModal) bookingModal.style.display = "none";
   });
   // --- Elementos de reserva ---
   const professionalSelect = document.getElementById("professionalSelect");
@@ -194,7 +197,7 @@ window.addEventListener("load", async () => {
         🔗 Accede a la reunión de Google Meet: <a href="${data.meetLink}" target="_blank">${data.meetLink}</a>
       `;
   // Mostrar modal de confirmación
-  bookingModal.classList.remove("hidden");
+  bookingModal.style.display = "flex";
       bookingForm.classList.add("hidden");
       clientName.value = "";
       clientEmail.value = "";
