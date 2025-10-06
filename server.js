@@ -40,6 +40,13 @@ const pool = new Pool({
       hour TEXT NOT NULL
     );
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS doctors (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT UNIQUE NOT NULL
+    );
+  `);
 })();
 
 // ---------------- GOOGLE CONFIG ----------------
@@ -191,6 +198,49 @@ app.post("/api/admin/availability", async (req, res) => {
   }
 
   res.json({ message: "Disponibilidad actualizada" });
+});
+
+// ---------------- DOCTORS ----------------
+
+// Agregar doctor
+app.post("/api/admin/add-doctor", async (req, res) => {
+  const { doctor } = req.body;
+  if (!doctor) return res.status(400).json({ error: "Falta el nombre del doctor" });
+
+  try {
+    await pool.query("INSERT INTO doctors(name) VALUES($1) ON CONFLICT DO NOTHING", [doctor]);
+    res.json({ success: true, message: `Doctor ${doctor} agregado correctamente` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al agregar doctor" });
+  }
+});
+
+// Eliminar doctor y su disponibilidad
+app.post("/api/admin/delete-doctor", async (req, res) => {
+  const { doctor } = req.body;
+  if (!doctor) return res.status(400).json({ error: "Falta el nombre del doctor" });
+
+  try {
+    await pool.query("DELETE FROM availability WHERE doctor=$1", [doctor]);
+    await pool.query("DELETE FROM doctors WHERE name=$1", [doctor]);
+    res.json({ success: true, message: `Doctor ${doctor} eliminado` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al eliminar doctor" });
+  }
+});
+
+// ---------------- ELIMINAR RESERVA ----------------
+app.delete("/api/bookings/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query("DELETE FROM bookings WHERE id=$1", [id]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al eliminar reserva" });
+  }
 });
 
 // ---------------- HTML ----------------
