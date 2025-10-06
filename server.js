@@ -1,9 +1,10 @@
-require("dotenv").config(); // Para usar variables de entorno
+// No necesitas dotenv si Railway ya maneja las variables de entorno
 const express = require("express");
 const cors = require("cors");
 const { Pool } = require("pg");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
+const path = require("path");
 
 const app = express();
 app.use(cors());
@@ -13,7 +14,7 @@ app.use(express.static("public"));
 // ---------------- DATABASE POSTGRES ----------------
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // necesario para Railway
+  ssl: { rejectUnauthorized: false },
 });
 
 // Crear tablas si no existen
@@ -42,7 +43,7 @@ const pool = new Pool({
 })();
 
 // ---------------- GOOGLE CONFIG ----------------
-const CREDENTIALS_PATH = "credentials.json";
+const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
 const SCOPES = [
   "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/calendar.events",
@@ -52,7 +53,7 @@ const SCOPES = [
 let oAuth2Client;
 
 function initGoogleClient() {
-  const credentials = require(`./${CREDENTIALS_PATH}`);
+  const credentials = require(CREDENTIALS_PATH);
   const { client_secret, client_id, redirect_uris } = credentials.web;
 
   oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
@@ -69,8 +70,8 @@ function initGoogleClient() {
 // ---------------- Nodemailer con OAuth2 ----------------
 async function createTransporter() {
   if (!oAuth2Client) throw new Error("❌ OAuth2 no inicializado");
-
   const accessToken = await oAuth2Client.getAccessToken();
+
   return nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -149,13 +150,11 @@ app.post("/api/bookings", async (req, res) => {
 
     const meetLink = response.data.hangoutLink;
 
-    // Guardar en DB
     const insert = await pool.query(
       `INSERT INTO bookings(name,email,rut,phone,professional,datetime,meet_link) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
       [name, email, rut, phone, professional, datetime, meetLink]
     );
 
-    // Enviar correo
     const transporter = await createTransporter();
     await transporter.sendMail({
       from: '"Salud Para Chile" <saludparachile@gmail.com>',
@@ -175,22 +174,30 @@ app.post("/api/bookings", async (req, res) => {
   }
 });
 
-// Disponibilidad
+// ---------------- Disponibilidad ----------------
 app.get("/api/admin/availability", async (req, res) => {
   const result = await pool.query("SELECT * FROM availability ORDER BY doctor,date,hour ASC");
   res.json(result.rows);
 });
 
 app.post("/api/admin/availability", async (req, res) => {
-  const { doctor, date, hour } = req.body;
-  await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour]);
+  const { doctor, date, hours } = req.body;
+
+  // Borrar horas antiguas del día antes de actualizar
+  await pool.query("DELETE FROM availability WHERE doctor=$1 AND date=$2", [doctor, date]);
+
+  for (const hour of hours) {
+    if (hour) await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour]);
+  }
+
   res.json({ message: "Disponibilidad actualizada" });
 });
 
-// HTML
+// ---------------- HTML ----------------
 app.get("/", (req, res) => res.sendFile("public/index.html", { root: process.cwd() }));
 app.get("/admin/bookings", (req, res) => res.sendFile("public/admin.html", { root: process.cwd() }));
 
+// ---------------- INICIALIZACIÓN ----------------
 const PORT = process.env.PORT || 3000;
 initGoogleClient();
-app.listen(PORT, () => console.log(`✅ Servidor corriendo en puerto ${PORT}`));
+app.listen(PORT, "0.0.0.0", () => console.log(`✅ Servidor corriendo en puerto ${PORT}`));

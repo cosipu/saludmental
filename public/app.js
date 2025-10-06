@@ -55,6 +55,7 @@ window.addEventListener("load", async () => {
     hoursContainer.innerHTML = "";
     bookingForm.classList.add("hidden");
     bookingMsg.textContent = "";
+    selectedHour = null;
   });
 
   // --- Selección de día ---
@@ -63,6 +64,7 @@ window.addEventListener("load", async () => {
     hoursContainer.innerHTML = "";
     bookingForm.classList.add("hidden");
     bookingMsg.textContent = "";
+    selectedHour = null;
     if (!selectedProfessional || !selectedDate) return;
 
     // Traer disponibilidad para el profesional y fecha
@@ -80,6 +82,7 @@ window.addEventListener("load", async () => {
     // Traer reservas ya hechas
     const resBookings = await fetch("/api/bookings");
     const bookings = await resBookings.json();
+
     const availableSlots = slotsForDay.filter(hour => {
       const datetime = `${selectedDate}T${hour}:00`;
       return !bookings.some(b => b.professional === selectedProfessional && b.datetime === datetime);
@@ -93,6 +96,7 @@ window.addEventListener("load", async () => {
     availableSlots.forEach(hour => {
       const btn = document.createElement("button");
       btn.textContent = hour;
+      btn.type = "button";
       btn.addEventListener("click", () => {
         selectedHour = hour;
         slotText.textContent = `Seleccionaste: ${selectedDate} a las ${selectedHour}`;
@@ -111,6 +115,7 @@ window.addEventListener("load", async () => {
     clientEmail.value = "";
     clientRUT.value = "";
     clientPhone.value = "";
+    selectedHour = null;
   });
 
   // --- Confirmar reserva ---
@@ -121,8 +126,8 @@ window.addEventListener("load", async () => {
     const rut = clientRUT.value.trim();
     const phone = clientPhone.value.trim();
 
-    if (!name || !rut || !email || !phone) {
-      bookingMsg.textContent = "Debes completar todos los campos";
+    if (!name || !rut || !email || !phone || !selectedProfessional || !selectedDate || !selectedHour) {
+      bookingMsg.textContent = "Debes completar todos los campos y seleccionar una hora";
       return;
     }
     if (!validarRUT(rut)) {
