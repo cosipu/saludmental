@@ -6,8 +6,14 @@ window.addEventListener("load", async () => {
   const doctorLoginBtnModal = document.getElementById("doctorLoginBtnModal");
   const doctorLoginMsg = document.getElementById("doctorLoginMsg");
 
-  doctorBtn.addEventListener("click", () => doctorModal.classList.remove("hidden"));
-  closeDoctorModal.addEventListener("click", () => doctorModal.classList.add("hidden"));
+  doctorBtn.addEventListener("click", () => {
+    doctorModal.classList.remove("hidden");
+    doctorModal.style.display = "flex";
+  });
+  closeDoctorModal.addEventListener("click", () => {
+    doctorModal.classList.add("hidden");
+    doctorModal.style.display = "none";
+  });
   doctorLoginBtnModal.addEventListener("click", async () => {
     const name = document.getElementById("doctorUser").value;
     const pass = document.getElementById("doctorPass").value;

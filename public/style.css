@@ -1,3 +1,7 @@
+/* Ocultar elementos con .hidden */
+.hidden {
+  display: none !important;
+}
 /* --- RESPONSIVE DESIGN --- */
 @media (max-width: 700px) {
   header.hero-banner {
