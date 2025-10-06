@@ -17,33 +17,29 @@ window.addEventListener("load", async () => {
   let selectedDate = null;
   let selectedHour = null;
 
-  // --- Función para validar RUT chileno ---
+  // --- Validar RUT chileno ---
   function validarRUT(rut) {
-    rut = rut.replace(/\./g, '').replace('-', '');
+    rut = rut.replace(/\./g, "").replace("-", "");
     let cuerpo = rut.slice(0, -1);
     let dv = rut.slice(-1).toUpperCase();
-
     if (!/^\d+$/.test(cuerpo)) return false;
-
-    let suma = 0;
-    let multiplo = 2;
-
+    let suma = 0, multiplo = 2;
     for (let i = cuerpo.length - 1; i >= 0; i--) {
       suma += multiplo * parseInt(cuerpo[i]);
       multiplo = multiplo < 7 ? multiplo + 1 : 2;
     }
-
     let dvEsperado = 11 - (suma % 11);
-    dvEsperado = dvEsperado === 11 ? '0' : dvEsperado === 10 ? 'K' : dvEsperado.toString();
-
+    dvEsperado = dvEsperado === 11 ? "0" : dvEsperado === 10 ? "K" : dvEsperado.toString();
     return dv === dvEsperado;
   }
 
-  // --- Cargar profesionales ---
+  // --- Cargar profesionales desde PostgreSQL ---
   const loadProfessionals = async () => {
     const res = await fetch("/api/admin/availability");
     const availability = await res.json();
-    Object.keys(availability).forEach(pro => {
+    const professionals = [...new Set(availability.map(a => a.doctor))];
+    professionalSelect.innerHTML = '<option value="">Selecciona profesional</option>';
+    professionals.forEach(pro => {
       const option = document.createElement("option");
       option.value = pro;
       option.textContent = pro;
@@ -67,17 +63,24 @@ window.addEventListener("load", async () => {
     hoursContainer.innerHTML = "";
     bookingForm.classList.add("hidden");
     bookingMsg.textContent = "";
-
     if (!selectedProfessional || !selectedDate) return;
 
-    const resAvailability = await fetch("/api/admin/availability");
+    // Traer disponibilidad para el profesional y fecha
+    const resAvailability = await fetch(`/api/admin/availability`);
     const availability = await resAvailability.json();
-    const allSlots = availability[selectedProfessional]?.[selectedDate] || [];
+    const slotsForDay = availability
+      .filter(a => a.doctor === selectedProfessional && a.date === selectedDate)
+      .map(a => a.hour);
 
+    if (slotsForDay.length === 0) {
+      hoursContainer.textContent = "No hay horas disponibles para este día.";
+      return;
+    }
+
+    // Traer reservas ya hechas
     const resBookings = await fetch("/api/bookings");
     const bookings = await resBookings.json();
-
-    const availableSlots = allSlots.filter(hour => {
+    const availableSlots = slotsForDay.filter(hour => {
       const datetime = `${selectedDate}T${hour}:00`;
       return !bookings.some(b => b.professional === selectedProfessional && b.datetime === datetime);
     });
@@ -113,7 +116,6 @@ window.addEventListener("load", async () => {
   // --- Confirmar reserva ---
   confirmBtn.addEventListener("click", async () => {
     bookingMsg.textContent = "";
-
     const name = clientName.value.trim();
     const email = clientEmail.value.trim();
     const rut = clientRUT.value.trim();
@@ -137,10 +139,8 @@ window.addEventListener("load", async () => {
     }
 
     const datetime = `${selectedDate}T${selectedHour}:00`;
-
     try {
-      // --- Mostrar spinner ---
-      bookingMsg.innerHTML = '⏳ Procesando reserva...';
+      bookingMsg.innerHTML = "⏳ Procesando reserva...";
       confirmBtn.disabled = true;
 
       const res = await fetch("/api/bookings", {
@@ -152,8 +152,6 @@ window.addEventListener("load", async () => {
       if (!res.ok) throw new Error("Error al crear la reserva");
 
       const data = await res.json();
-
-      // --- Mostrar resultado ---
       bookingMsg.innerHTML = `
         ✅ Reserva creada y correo enviado.<br>
         🔗 Accede a la reunión de Google Meet: <a href="${data.meetLink}" target="_blank">${data.meetLink}</a>
@@ -163,7 +161,7 @@ window.addEventListener("load", async () => {
       clientEmail.value = "";
       clientRUT.value = "";
       clientPhone.value = "";
-      daySelect.dispatchEvent(new Event("change")); // refrescar slots
+      daySelect.dispatchEvent(new Event("change"));
     } catch (err) {
       console.error(err);
       bookingMsg.textContent = "❌ Error al crear la reserva o enviar el correo";
@@ -181,11 +179,9 @@ window.addEventListener("load", async () => {
 
   adminBtn.addEventListener("click", () => modal.classList.remove("hidden"));
   closeModal.addEventListener("click", () => modal.classList.add("hidden"));
-
   loginBtn.addEventListener("click", () => {
     const user = document.getElementById("adminUser").value;
     const pass = document.getElementById("adminPass").value;
-
     if (user === "admin" && pass === "1234") {
       window.location.href = "/admin/bookings";
     } else {

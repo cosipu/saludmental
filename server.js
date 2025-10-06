@@ -1,29 +1,48 @@
+require("dotenv").config(); // Para usar variables de entorno
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
-const { Low } = require("lowdb");
-const { JSONFile } = require("lowdb/node");
+const { Pool } = require("pg");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(process.cwd(), "public")));
+app.use(express.static("public"));
 
-// ---------------- DATABASE ----------------
-const dbFile = path.join(process.cwd(), "db.json");
-if (!fs.existsSync(dbFile)) {
-  fs.writeFileSync(dbFile, JSON.stringify({ bookings: [], availability: {} }, null, 2));
-}
-const adapter = new JSONFile(dbFile);
-const db = new Low(adapter);
+// ---------------- DATABASE POSTGRES ----------------
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // necesario para Railway
+});
+
+// Crear tablas si no existen
+(async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS bookings (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      rut TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      professional TEXT NOT NULL,
+      datetime TIMESTAMP NOT NULL,
+      meet_link TEXT
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS availability (
+      id BIGSERIAL PRIMARY KEY,
+      doctor TEXT NOT NULL,
+      date DATE NOT NULL,
+      hour TEXT NOT NULL
+    );
+  `);
+})();
 
 // ---------------- GOOGLE CONFIG ----------------
-const CREDENTIALS_PATH = path.join(process.cwd(), "credentials.json");
-const TOKEN_PATH = path.join(process.cwd(), "token.json");
-
+const CREDENTIALS_PATH = "credentials.json";
 const SCOPES = [
   "https://www.googleapis.com/auth/calendar",
   "https://www.googleapis.com/auth/calendar.events",
@@ -32,24 +51,18 @@ const SCOPES = [
 
 let oAuth2Client;
 
-// Inicializar cliente OAuth
 function initGoogleClient() {
-  if (!fs.existsSync(CREDENTIALS_PATH)) {
-    console.error("❌ No se encontró credentials.json");
-    return;
-  }
-
-  const credentials = JSON.parse(fs.readFileSync(CREDENTIALS_PATH));
+  const credentials = require(`./${CREDENTIALS_PATH}`);
   const { client_secret, client_id, redirect_uris } = credentials.web;
 
   oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-  if (fs.existsSync(TOKEN_PATH)) {
-    const tokens = JSON.parse(fs.readFileSync(TOKEN_PATH));
+  if (process.env.GOOGLE_TOKEN) {
+    const tokens = JSON.parse(process.env.GOOGLE_TOKEN);
     oAuth2Client.setCredentials(tokens);
-    console.log("✅ Token cargado correctamente");
+    console.log("✅ Token cargado desde variable de entorno");
   } else {
-    console.log("⚠️ Falta token.json — autoriza visitando /auth");
+    console.log("⚠️ GOOGLE_TOKEN no configurado — autoriza visitando /auth");
   }
 }
 
@@ -57,6 +70,7 @@ function initGoogleClient() {
 async function createTransporter() {
   if (!oAuth2Client) throw new Error("❌ OAuth2 no inicializado");
 
+  const accessToken = await oAuth2Client.getAccessToken();
   return nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -65,160 +79,118 @@ async function createTransporter() {
       clientId: oAuth2Client._clientId,
       clientSecret: oAuth2Client._clientSecret,
       refreshToken: oAuth2Client.credentials.refresh_token,
-      accessToken: await oAuth2Client.getAccessToken(),
+      accessToken: accessToken.token,
     },
   });
 }
 
-// ---------------- RUTAS DE AUTORIZACIÓN ----------------
+// ---------------- RUTAS GOOGLE ----------------
 app.get("/auth", (req, res) => {
-  if (!oAuth2Client) return res.status(500).send("❌ Google OAuth no inicializado");
-
   const url = oAuth2Client.generateAuthUrl({
     access_type: "offline",
     scope: SCOPES,
     prompt: "consent",
   });
-
   res.redirect(url);
 });
 
 app.get("/oauth2callback", async (req, res) => {
-  if (!oAuth2Client) return res.status(500).send("❌ Google OAuth no inicializado");
-
   const code = req.query.code;
   if (!code) return res.status(400).send("❌ Falta el parámetro 'code'.");
 
   try {
     const { tokens } = await oAuth2Client.getToken(code);
     oAuth2Client.setCredentials(tokens);
-    fs.writeFileSync(TOKEN_PATH, JSON.stringify(tokens));
-    console.log("✅ Token guardado correctamente");
-
-    res.send("✅ Autenticación completada correctamente. Ya puedes cerrar esta pestaña.");
-  } catch (error) {
-    console.error("❌ Error en /oauth2callback:", error);
+    console.log("✅ Token obtenido, configúralo como GOOGLE_TOKEN en la variable de entorno:");
+    console.log(JSON.stringify(tokens));
+    res.send("✅ Autenticación completada. Copia el token mostrado en la consola a GOOGLE_TOKEN.");
+  } catch (err) {
+    console.error(err);
     res.status(500).send("Error al procesar la autenticación.");
   }
 });
 
 // ---------------- API PRINCIPAL ----------------
-(async function main() {
-  await db.read();
-  db.data ||= { bookings: [], availability: {} };
-  initGoogleClient();
 
-  // Obtener todas las reservas
-  app.get("/api/bookings", (req, res) => res.json(db.data.bookings));
+// Obtener reservas
+app.get("/api/bookings", async (req, res) => {
+  const result = await pool.query("SELECT * FROM bookings ORDER BY datetime ASC");
+  res.json(result.rows);
+});
 
-  // Crear reserva + evento Google Meet + enviar correo
-  app.post("/api/bookings", async (req, res) => {
-    const { name, email, rut, phone, datetime, professional } = req.body;
+// Crear reserva + evento Google Meet + correo
+app.post("/api/bookings", async (req, res) => {
+  const { name, email, rut, phone, datetime, professional } = req.body;
+  if (!name || !email || !rut || !phone || !datetime || !professional)
+    return res.status(400).json({ error: "Faltan datos obligatorios" });
 
-    if (!name || !email || !rut || !phone || !datetime || !professional) {
-      return res.status(400).json({ error: "Faltan datos obligatorios" });
-    }
+  try {
+    const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
+    const start = new Date(datetime);
+    const end = new Date(start.getTime() + 30 * 60 * 1000);
 
-    const booking = { id: Date.now(), name, email, rut, phone, professional, datetime };
-    db.data.bookings.push(booking);
-    await db.write();
+    const event = {
+      summary: `Consulta con ${professional}`,
+      description: `Consulta online con ${name}`,
+      start: { dateTime: start.toISOString(), timeZone: "America/Santiago" },
+      end: { dateTime: end.toISOString(), timeZone: "America/Santiago" },
+      attendees: [{ email }],
+      conferenceData: {
+        createRequest: { requestId: `meet-${Date.now()}`, conferenceSolutionKey: { type: "hangoutsMeet" } },
+      },
+    };
 
-    try {
-      const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
-      const start = new Date(datetime);
-      const end = new Date(start.getTime() + 30 * 60 * 1000); // 30 min
+    const response = await calendar.events.insert({
+      calendarId: "primary",
+      resource: event,
+      conferenceDataVersion: 1,
+      sendUpdates: "all",
+    });
 
-      const event = {
-        summary: `Consulta con ${professional}`,
-        description: `Consulta online con ${name}`,
-        start: { dateTime: start.toISOString(), timeZone: "America/Santiago" },
-        end: { dateTime: end.toISOString(), timeZone: "America/Santiago" },
-        attendees: [{ email }],
-        conferenceData: {
-          createRequest: {
-            requestId: `meet-${Date.now()}`,
-            conferenceSolutionKey: { type: "hangoutsMeet" },
-          },
-        },
-      };
+    const meetLink = response.data.hangoutLink;
 
-      const response = await calendar.events.insert({
-        calendarId: "primary",
-        resource: event,
-        conferenceDataVersion: 1,
-        sendUpdates: "all",
-      });
+    // Guardar en DB
+    const insert = await pool.query(
+      `INSERT INTO bookings(name,email,rut,phone,professional,datetime,meet_link) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+      [name, email, rut, phone, professional, datetime, meetLink]
+    );
 
-      booking.meetLink = response.data.hangoutLink;
-      await db.write();
+    // Enviar correo
+    const transporter = await createTransporter();
+    await transporter.sendMail({
+      from: '"Salud Para Chile" <saludparachile@gmail.com>',
+      to: email,
+      subject: `Reserva confirmada con ${professional}`,
+      html: `<p>Hola ${name},</p>
+             <p>Tu reserva con ${professional} ha sido confirmada para <strong>${datetime}</strong>.</p>
+             <p>Accede a la reunión de Google Meet usando este enlace:</p>
+             <a href="${meetLink}" target="_blank">${meetLink}</a>
+             <p>Gracias por confiar en nosotros.</p>`,
+    });
 
-      // ---------------- Enviar correo automático usando OAuth2 ----------------
-      const transporter = await createTransporter();
-      const mailOptions = {
-        from: '"Salud Para Chile" <saludparachile@gmail.com>',
-        to: email,
-        subject: `Reserva confirmada con ${professional}`,
-        html: `
-          <p>Hola ${name},</p>
-          <p>Tu reserva con ${professional} ha sido confirmada para <strong>${datetime}</strong>.</p>
-          <p>Accede a la reunión de Google Meet usando este enlace:</p>
-          <a href="${booking.meetLink}" target="_blank">${booking.meetLink}</a>
-          <p>Gracias por confiar en nosotros.</p>
-        `,
-      };
+    res.json({ success: true, booking: insert.rows[0], meetLink });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Error al crear la reunión o enviar el correo." });
+  }
+});
 
-      await transporter.sendMail(mailOptions);
-      console.log("📧 Correo enviado a", email);
+// Disponibilidad
+app.get("/api/admin/availability", async (req, res) => {
+  const result = await pool.query("SELECT * FROM availability ORDER BY doctor,date,hour ASC");
+  res.json(result.rows);
+});
 
-      res.json({ success: true, booking, meetLink: booking.meetLink });
-    } catch (error) {
-      console.error("❌ Error al crear evento o enviar correo:", error);
-      res.status(500).json({ error: "Error al crear la reunión o enviar el correo." });
-    }
-  });
+app.post("/api/admin/availability", async (req, res) => {
+  const { doctor, date, hour } = req.body;
+  await pool.query("INSERT INTO availability(doctor,date,hour) VALUES($1,$2,$3)", [doctor, date, hour]);
+  res.json({ message: "Disponibilidad actualizada" });
+});
 
-  // Eliminar reserva
-  app.delete("/api/bookings/:id", async (req, res) => {
-    const id = parseInt(req.params.id);
-    db.data.bookings = db.data.bookings.filter(b => b.id !== id);
-    await db.write();
-    res.json({ message: "Reserva eliminada" });
-  });
+// HTML
+app.get("/", (req, res) => res.sendFile("public/index.html", { root: process.cwd() }));
+app.get("/admin/bookings", (req, res) => res.sendFile("public/admin.html", { root: process.cwd() }));
 
-  // Disponibilidad
-  app.get("/api/admin/availability", (req, res) => res.json(db.data.availability));
-
-  app.post("/api/admin/availability", async (req, res) => {
-    const { doctor, date, hours } = req.body;
-    db.data.availability[doctor] ||= {};
-    db.data.availability[doctor][date] = hours;
-    await db.write();
-    res.json({ message: "Disponibilidad actualizada" });
-  });
-
-  // Agregar / eliminar doctores
-  app.post("/api/admin/add-doctor", async (req, res) => {
-    const { doctor } = req.body;
-    db.data.availability[doctor] ||= {};
-    await db.write();
-    res.json({ message: "Doctor agregado" });
-  });
-
-  app.post("/api/admin/delete-doctor", async (req, res) => {
-    const { doctor } = req.body;
-    if (!db.data.availability[doctor])
-      return res.status(404).json({ error: "Doctor no encontrado" });
-
-    delete db.data.availability[doctor];
-    db.data.bookings = db.data.bookings.filter(b => b.professional !== doctor);
-    await db.write();
-    res.json({ message: "Doctor eliminado" });
-  });
-
-  // HTML
-  app.get("/", (req, res) => res.sendFile(path.join(process.cwd(), "public/index.html")));
-  app.get("/admin/bookings", (req, res) => res.sendFile(path.join(process.cwd(), "public/admin.html")));
-
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, "0.0.0.0", () => console.log(`✅ Servidor corriendo en puerto ${PORT}`));
-})();
+const PORT = process.env.PORT || 3000;
+initGoogleClient();
+app.listen(PORT, () => console.log(`✅ Servidor corriendo en puerto ${PORT}`));

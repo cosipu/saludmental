@@ -19,15 +19,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const availabilityMsg = document.getElementById("availabilityMsg");
   const deleteHourBtn = document.getElementById("deleteHourBtn");
 
-  // Crear select dinámico para borrar horas
+  // Select dinámico para borrar horas
   const selectHourDelete = document.createElement("select");
   deleteHourBtn.insertAdjacentElement("beforebegin", selectHourDelete);
 
-  // --- Elementos crear/eliminar doctor ---
+  // --- Crear/eliminar doctor ---
   const newDoctorInput = document.getElementById("newDoctor");
   const addDoctorBtn = document.getElementById("addDoctorBtn");
   const deleteDoctorBtn = document.getElementById("deleteDoctorBtn");
-  const selectDoctorAdmin = document.getElementById("selectDoctorAdmin"); // ya existe en HTML
+  const selectDoctorAdmin = document.getElementById("selectDoctorAdmin");
 
   // ---------- FUNCIONES RESERVAS ----------
   const fetchBookings = async () => {
@@ -98,20 +98,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderTable();
   });
 
-  renderTable(); // inicializar tabla
-
   // ---------- FUNCIONES DISPONIBILIDAD ----------
   const loadDoctors = async () => {
     const res = await fetch("/api/admin/availability");
     const availability = await res.json();
 
-    // Limpiar selects
-    selectDoctor.innerHTML = '<option value="">--Selecciona un médico--</option>';
-    newProfessional.innerHTML = '<option value="">--Selecciona un médico--</option>';
-    filterProfessional.innerHTML = '<option value="">Todos</option>';
-    selectDoctorAdmin.innerHTML = '<option value="">--Selecciona un doctor--</option>';
+    const doctors = [...new Set(availability.map(a => a.doctor))];
 
-    Object.keys(availability).forEach(doc => {
+    // Limpiar selects
+    [selectDoctor, newProfessional, filterProfessional, selectDoctorAdmin].forEach(select => {
+      select.innerHTML = "";
+    });
+
+    doctors.forEach(doc => {
       [selectDoctor, newProfessional, filterProfessional, selectDoctorAdmin].forEach(select => {
         const opt = document.createElement("option");
         opt.value = doc;
@@ -119,6 +118,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         select.appendChild(opt);
       });
     });
+
+    // Agregar opción "Todos" para filtro
+    const optionTodos = document.createElement("option");
+    optionTodos.value = "";
+    optionTodos.textContent = "Todos";
+    filterProfessional.prepend(optionTodos);
   };
 
   const loadAvailability = async () => {
@@ -127,7 +132,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const doctor = selectDoctor.value;
     const date = doctorDate.value;
 
-    const hours = availability[doctor]?.[date] || [];
+    const hours = availability.filter(a => a.doctor === doctor && a.date === date).map(a => a.hour);
     doctorHours.value = hours.join(",");
 
     selectHourDelete.innerHTML = "";
@@ -179,12 +184,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const doctor = selectDoctor.value;
     const date = doctorDate.value;
     const hourToDelete = selectHourDelete.value;
-
     if (!doctor || !date || !hourToDelete) return alert("Selecciona doctor, fecha y hora");
 
     const resFetch = await fetch("/api/admin/availability");
     const availability = await resFetch.json();
-    const currentHours = availability[doctor]?.[date] || [];
+    const currentHours = availability.filter(a => a.doctor === doctor && a.date === date).map(a => a.hour);
     const newHours = currentHours.filter(h => h !== hourToDelete);
 
     await fetch("/api/admin/availability", {
@@ -227,4 +231,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     await loadDoctors();
     loadAvailability();
   });
+
+  renderTable(); // inicializar tabla
 });
