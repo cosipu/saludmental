@@ -185,6 +185,14 @@ window.addEventListener("load", async () => {
         ✅ Reserva creada y correo enviado.<br>
         🔗 Accede a la reunión de Google Meet: <a href="${data.meetLink}" target="_blank">${data.meetLink}</a>
       `;
+      // Mostrar modal de confirmación
+      const bookingModal = document.getElementById("bookingModal");
+      const closeBookingModal = document.getElementById("closeBookingModal");
+      bookingModal.classList.remove("hidden");
+      closeBookingModal.onclick = () => bookingModal.classList.add("hidden");
+      window.onclick = e => {
+        if (e.target === bookingModal) bookingModal.classList.add("hidden");
+      };
       bookingForm.classList.add("hidden");
       clientName.value = "";
       clientEmail.value = "";

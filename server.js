@@ -1,3 +1,15 @@
+// --- Login de médicos ---
+const doctorUsers = require("./doctorUsers");
+
+app.post("/api/doctor-login", (req, res) => {
+  const { name, password } = req.body;
+  const user = doctorUsers.find(u => u.name === name && u.password === password);
+  if (user) {
+    res.json({ success: true });
+  } else {
+    res.status(401).json({ success: false, message: "Credenciales incorrectas" });
+  }
+});
 
 // Cargar variables de entorno desde .env si existe (útil para desarrollo local)
 require('dotenv').config();
@@ -320,6 +332,7 @@ app.delete("/api/bookings/:id", async (req, res) => {
 // ---------------- HTML ----------------
 app.get("/", (req, res) => res.sendFile("public/index.html", { root: process.cwd() }));
 app.get("/admin/bookings", (req, res) => res.sendFile("public/admin.html", { root: process.cwd() }));
+app.get("/doctor", (req, res) => res.sendFile("public/doctor.html", { root: process.cwd() }));
 
 // ---------------- INICIALIZACIÓN ----------------
 async function initServer() {
