@@ -154,14 +154,21 @@ app.post("/api/bookings", async (req, res) => {
 
   try {
     const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
-    const start = new Date(datetime);
-    const end = new Date(start.getTime() + 30 * 60 * 1000);
+    // datetime viene como 'YYYY-MM-DDTHH:mm:00'
+    // Construir fin sumando 30 minutos
+    const [datePart, timePart] = datetime.split("T");
+    const [hour, minute] = timePart.split(":");
+    const startDateTime = `${datePart}T${hour}:${minute}:00`;
+    // Sumar 30 minutos
+    const startDate = new Date(`${datePart}T${hour}:${minute}:00-03:00`); // Chile UTC-3
+    const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+    const endDateTime = endDate.toISOString().slice(0, 19); // 'YYYY-MM-DDTHH:mm:ss'
 
     const event = {
       summary: `Consulta con ${professional}`,
       description: `Consulta online con ${name}`,
-      start: { dateTime: start.toISOString(), timeZone: "America/Santiago" },
-      end: { dateTime: end.toISOString(), timeZone: "America/Santiago" },
+      start: { dateTime: startDateTime, timeZone: "America/Santiago" },
+      end: { dateTime: endDateTime, timeZone: "America/Santiago" },
       attendees: [{ email }],
       conferenceData: {
         createRequest: { requestId: `meet-${Date.now()}`, conferenceSolutionKey: { type: "hangoutsMeet" } },
