@@ -12,6 +12,8 @@ window.addEventListener("load", async () => {
   const confirmBtn = document.getElementById("confirmBtn");
   const cancelBtn = document.getElementById("cancelBtn");
   const bookingMsg = document.getElementById("bookingMsg");
+  const doctorInfo = document.getElementById("doctorInfo");
+  const availableHoursInfo = document.getElementById("availableHoursInfo");
 
   let selectedProfessional = null;
   let selectedDate = null;
@@ -49,13 +51,26 @@ window.addEventListener("load", async () => {
   await loadProfessionals();
 
   // --- Selección de profesional ---
-  professionalSelect.addEventListener("change", () => {
+  professionalSelect.addEventListener("change", async () => {
     selectedProfessional = professionalSelect.value;
     daySelect.disabled = !selectedProfessional;
     hoursContainer.innerHTML = "";
     bookingForm.classList.add("hidden");
     bookingMsg.textContent = "";
     selectedHour = null;
+    doctorInfo.textContent = selectedProfessional ? `Doctor seleccionado: ${selectedProfessional}` : "";
+    availableHoursInfo.textContent = "";
+    if (selectedProfessional) {
+      // Mostrar días disponibles para el doctor
+      const resAvailability = await fetch(`/api/admin/availability`);
+      const availability = await resAvailability.json();
+      const days = [...new Set(availability.filter(a => a.doctor === selectedProfessional).map(a => a.date))];
+      if (days.length > 0) {
+        availableHoursInfo.textContent = `Días con horas disponibles: ${days.join(", ")}`;
+      } else {
+        availableHoursInfo.textContent = "No hay días disponibles para este profesional.";
+      }
+    }
   });
 
   // --- Selección de día ---
@@ -65,6 +80,7 @@ window.addEventListener("load", async () => {
     bookingForm.classList.add("hidden");
     bookingMsg.textContent = "";
     selectedHour = null;
+    availableHoursInfo.textContent = "";
     if (!selectedProfessional || !selectedDate) return;
 
     // Traer disponibilidad para el profesional y fecha
@@ -92,6 +108,8 @@ window.addEventListener("load", async () => {
       hoursContainer.textContent = "No hay horas disponibles para este día.";
       return;
     }
+
+    availableHoursInfo.textContent = `Horas disponibles para ${selectedDate}: ${availableSlots.join(", ")}`;
 
     availableSlots.forEach(hour => {
       const btn = document.createElement("button");

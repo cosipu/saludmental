@@ -39,16 +39,20 @@
   <main id="booking">
     <section class="booking-section">
       <h2>Reserva tu hora</h2>
+
       <label>Selecciona un profesional:
         <select id="professionalSelect">
           <option value="">--Elige un profesional--</option>
         </select>
       </label>
 
+      <div id="doctorInfo" style="margin-bottom: 18px; font-weight: 500; color: #1f3c88;"></div>
+
       <label>Selecciona un día:
         <input type="date" id="daySelect" disabled>
       </label>
 
+      <div id="availableHoursInfo" style="margin-bottom: 10px; color: #2a52be;"></div>
       <div id="hoursContainer"></div>
 
       <div id="booking-form" class="hidden">
