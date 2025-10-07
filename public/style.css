@@ -1,3 +1,28 @@
+/* Botón de inscripción voluntario médico */
+.volunteer-btn {
+  display: inline-block;
+  margin-top: 18px;
+   background: #ff9800;
+  color: #fff;
+  font-weight: bold;
+  padding: 15px 38px;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(31,60,136,0.10);
+  transition: background 0.2s, box-shadow 0.2s;
+  font-size: 1.15rem;
+}
+.volunteer-btn:hover {
+   background: #fb8c00;
+  box-shadow: 0 4px 16px rgba(31,60,136,0.13);
+}
+@media (max-width: 700px) {
+  .volunteer-btn {
+    font-size: 1rem;
+    padding: 10px 16px;
+    margin-top: 12px;
+  }
+}
 /* Ocultar elementos con .hidden */
 .hidden {
   display: none !important;
@@ -58,10 +83,32 @@
     padding: 12px 8px;
     font-size: 0.95rem;
   }
+  /* Botones de login (Admin y Médico) */
   .admin-btn, .doctor-btn {
-    font-size: 1rem;
-    padding: 8px 14px;
-    margin: 4px 0;
+    display: inline-block;
+    font-size: 1.08rem;
+    font-weight: 600;
+    padding: 12px 28px;
+    margin: 6px 8px 0 0;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #1f3c88 60%, #2a52be 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(31,60,136,0.10);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+  .admin-btn:hover, .doctor-btn:hover {
+    background: linear-gradient(90deg, #2a52be 60%, #1f3c88 100%);
+    box-shadow: 0 4px 16px rgba(31,60,136,0.18);
+  }
+  @media (max-width: 700px) {
+    .admin-btn, .doctor-btn {
+      font-size: 1rem;
+      padding: 10px 16px;
+      margin: 4px 0;
+    }
   }
   label, input, select, button {
     font-size: 1rem;
@@ -122,7 +169,7 @@ header.hero-banner {
   position: relative;
   width: 100%;
   min-height: 320px;
-  background: url('https://images.unsplash.com/photo-1503676382389-4809596d5290?auto=format&fit=crop&w=1500&q=80') center center/cover no-repeat;
+  background: url('https://www.terapify.com/blog/wp-content/uploads/2025/09/psicologos-en-linea-gratis-1024x683.png') center center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
