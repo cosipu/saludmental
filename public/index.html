@@ -1,4 +1,50 @@
-  <!-- Modal de confirmación de reserva -->
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reserva Salud Mental </title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header class="hero-banner">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1>Apoyo Profesional para tu Bienestar Integral</h1>
+        <p>Elige un profesional y reserva una hora gratuita.</p>
+        <a href="#booking" class="cta-btn">Reservar Ahora</a>
+        <a href="https://forms.gle/Wru7ieWmyVTTpE2J6" target="_blank" class="volunteer-btn">¿Eres Profesional de la
+          Salud?
+          Inscríbete como voluntario</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="about">
+    <h2>Sobre nuestra clínica</h2>
+    <p>Ofrecemos apoyo profesional y asesoramiento de manera gratuita y totalmente confiable. Contamos con un equipo de
+      voluntarios cualificados (psicólogos, terapeutas y otros especialistas de la salud) listos para ayudarte a mejorar
+      tu bienestar integral.</p>
+    <div class="features">
+      <div class="feature">
+        <h3>Profesionales Certificados de la Salud</h3>
+        <p>Contamos con expertos cualificados de diversas áreas de la salud. Terapeutas, psicólogos y profesionales con
+          formación rigurosa y experiencia comprobada.</p>
+      </div>
+      <div class="feature">
+        <h3>Atención personalizada</h3>
+        <p>Recibe el apoyo que necesitas desde la comodidad de tu espacio, sin sacrificar la calidez ni la
+          confidencialidad. Nuestro enfoque se centra en ti, asegurando un proceso totalmente a tu medida..</p>
+      </div>
+      <div class="feature">
+        <h3>Flexible y accesible</h3>
+        <p>Tienes la libertad de reservar las horas que estén disponibles, ajustándose perfectamente a tu agenda y
+          conveniencia personal.</p>
+      </div>
+    </div>
+  </section>
   <div id="bookingModal" class="modal hidden">
     <div class="modal-content">
       <span id="closeBookingModal" class="close">&times;</span>
@@ -6,46 +52,6 @@
       <p>Tu hora ha sido reservada exitosamente.<br>Revisa tu correo para el enlace de la videollamada.</p>
     </div>
   </div>
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Reserva Salud Mental </title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header class="hero-banner">
-    <div class="hero-overlay">
-      <div class="hero-content">
-    <h1>Reserva gratuita — Salud Mental</h1>
-    <p>Elige un profesional y reserva una hora gratuita.</p>
-    <a href="#booking" class="cta-btn">Reservar Ahora</a>
-    <a href="https://forms.gle/Wru7ieWmyVTTpE2J6" target="_blank" class="volunteer-btn">¿Eres Profesiona de la Salud? 
-      Inscríbete como voluntario</a>
-      </div>
-    </div>
-  </header>
-
-  <section class="about">
-    <h2>Sobre nuestra clínica</h2>
-    <p>Brindamos apoyo psicológico de manera gratuita y confiable. Nuestro equipo de profesionales está aquí para ayudarte a mejorar tu bienestar emocional.</p>
-    <div class="features">
-      <div class="feature">
-        <h3>Profesionales certificados</h3>
-        <p>Psicólogos y terapeutas con experiencia y formación comprobada.</p>
-      </div>
-      <div class="feature">
-        <h3>Atención personalizada</h3>
-        <p>Adaptamos cada sesión a tus necesidades específicas.</p>
-      </div>
-      <div class="feature">
-        <h3>Flexible y accesible</h3>
-        <p>Reserva horas disponibles según tu conveniencia.</p>
-      </div>
-    </div>
-  </section>
-
   <main id="booking">
     <section class="booking-section">
       <h2>Reserva tu hora</h2>
@@ -95,8 +101,8 @@
 
 
   <footer>
-  <button id="adminLoginBtn" class="admin-btn">Admin</button>
-  <button id="doctorLoginBtn" class="doctor-btn">Médico</button>
+    <button id="adminLoginBtn" class="admin-btn">Admin</button>
+    <button id="doctorLoginBtn" class="doctor-btn">Profesional de la Salud</button>
   </footer>
 
   <!-- Modal de login Admin -->
@@ -114,7 +120,7 @@
   <div id="doctorModal" class="modal hidden">
     <div class="modal-content">
       <span id="closeDoctorModal" class="close">&times;</span>
-      <h3>Login Médico</h3>
+      <h3>Login Profesionales</h3>
       <label>Nombre: <input type="text" id="doctorUser"></label>
       <label>Contraseña: <input type="password" id="doctorPass"></label>
       <button id="doctorLoginBtnModal">Ingresar</button>
@@ -124,4 +130,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>
