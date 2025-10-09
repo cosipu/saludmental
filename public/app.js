@@ -42,17 +42,29 @@ window.addEventListener("load", async () => {
       doctorLoginMsg.style.color = "red";
     }
   });
-  // Ocultar modal de reserva al cargar la página (solo una vez)
-  const bookingModal = document.getElementById("bookingModal");
-  const closeBookingModal = document.getElementById("closeBookingModal");
-  // Asegura que el modal SIEMPRE esté oculto al cargar
-  if (bookingModal) bookingModal.style.display = "none";
-  if (closeBookingModal) closeBookingModal.onclick = () => {
-    bookingModal.style.display = "none";
-  };
-  bookingModal.addEventListener("click", e => {
-    if (e.target === bookingModal) bookingModal.style.display = "none";
+// Selecciona elementos del modal
+const bookingModal = document.getElementById("bookingModal");
+const closeBookingModal = document.getElementById("closeBookingModal");
+
+// Ocultar modal al cargar la página
+if (bookingModal) bookingModal.classList.add("hidden");
+
+// Cerrar modal al hacer click en la X
+if (closeBookingModal) {
+  closeBookingModal.addEventListener("click", () => {
+    bookingModal.classList.add("hidden");
   });
+}
+
+// Cerrar modal al hacer click fuera del contenido
+if (bookingModal) {
+  bookingModal.addEventListener("click", (e) => {
+    if (e.target === bookingModal) {
+      bookingModal.classList.add("hidden");
+    }
+  });
+}
+
   // --- Elementos de reserva ---
   const professionalSelect = document.getElementById("professionalSelect");
   const daySelect = document.getElementById("daySelect");
@@ -104,28 +116,59 @@ window.addEventListener("load", async () => {
   };
   await loadProfessionals();
 
-  // --- Selección de profesional ---
-  professionalSelect.addEventListener("change", async () => {
-    selectedProfessional = professionalSelect.value;
-    daySelect.disabled = !selectedProfessional;
-    hoursContainer.innerHTML = "";
-    bookingForm.classList.add("hidden");
-    bookingMsg.textContent = "";
-    selectedHour = null;
-    doctorInfo.textContent = selectedProfessional ? `Doctor seleccionado: ${selectedProfessional}` : "";
-    availableHoursInfo.textContent = "";
-    if (selectedProfessional) {
-      // Mostrar días disponibles para el doctor
-      const resAvailability = await fetch(`/api/admin/availability`);
-      const availability = await resAvailability.json();
-      const days = [...new Set(availability.filter(a => a.doctor === selectedProfessional).map(a => a.date))];
-      if (days.length > 0) {
-        availableHoursInfo.textContent = `Días con horas disponibles: ${days.join(", ")}`;
-      } else {
-        availableHoursInfo.textContent = "No hay días disponibles para este profesional.";
-      }
+professionalSelect.addEventListener("change", async () => {
+  selectedProfessional = professionalSelect.value;
+  daySelect.disabled = !selectedProfessional;
+  hoursContainer.innerHTML = "";
+  bookingForm.classList.add("hidden");
+  bookingMsg.textContent = "";
+  selectedHour = null;
+  doctorInfo.textContent = selectedProfessional
+    ? `Doctor seleccionado: ${selectedProfessional}`
+    : "";
+  availableHoursInfo.innerHTML = ""; // usamos innerHTML para poder insertar la lista
+
+  if (selectedProfessional) {
+    // Mostrar días disponibles para el doctor
+    const resAvailability = await fetch(`/api/admin/availability`);
+    const availability = await resAvailability.json();
+    const days = [
+      ...new Set(
+        availability
+          .filter(a => a.doctor === selectedProfessional)
+          .map(a => a.date)
+      ),
+    ];
+
+    if (days.length > 0) {
+      // Formatear fechas en estilo natural en español
+      const formattedDays = days.map(d => {
+        const date = new Date(d);
+        return date.toLocaleDateString("es-CL", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          timeZone: "UTC",
+        });
+      });
+
+      // Crear lista HTML
+      const ul = document.createElement("ul");
+      formattedDays.forEach(day => {
+        const li = document.createElement("li");
+        li.textContent = day;
+        ul.appendChild(li);
+      });
+
+      availableHoursInfo.appendChild(ul);
+    } else {
+      availableHoursInfo.textContent = "No hay días disponibles para este profesional.";
     }
-  });
+  }
+});
+
+
 
   // --- Selección de día ---
   daySelect.addEventListener("change", async () => {
@@ -222,37 +265,53 @@ window.addEventListener("load", async () => {
     }
 
     const datetime = `${selectedDate}T${selectedHour}:00`;
-    try {
-      bookingMsg.innerHTML = "⏳ Procesando reserva...";
-      confirmBtn.disabled = true;
+   try {
+  bookingMsg.innerHTML = "⏳ Procesando reserva...";
+  confirmBtn.disabled = true;
 
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, rut, phone, professional: selectedProfessional, datetime }),
-      });
+  const res = await fetch("/api/bookings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      name, 
+      email, 
+      rut, 
+      phone, 
+      professional: selectedProfessional, 
+      datetime 
+    }),
+  });
 
-      if (!res.ok) throw new Error("Error al crear la reserva");
+  if (!res.ok) throw new Error("Error al crear la reserva");
 
-      const data = await res.json();
-      bookingMsg.innerHTML = `
-        ✅ Reserva creada y correo enviado.<br>
-        🔗 Accede a la reunión de Google Meet: <a href="${data.meetLink}" target="_blank">${data.meetLink}</a>
-      `;
+  const data = await res.json();
+
+  bookingMsg.innerHTML = `
+    ✅ Reserva creada y correo enviado.<br>
+    🔗 Accede a la reunión de Google Meet: <a href="${data.meetLink}" target="_blank">${data.meetLink}</a>
+  `;
+
   // Mostrar modal de confirmación
-  bookingModal.style.display = "flex";
-      bookingForm.classList.add("hidden");
-      clientName.value = "";
-      clientEmail.value = "";
-      clientRUT.value = "";
-      clientPhone.value = "";
-      daySelect.dispatchEvent(new Event("change"));
-    } catch (err) {
-      console.error(err);
-      bookingMsg.textContent = "❌ Error al crear la reserva o enviar el correo";
-    } finally {
-      confirmBtn.disabled = false;
-    }
+  bookingModal.classList.remove("hidden");
+
+  // Ocultar formulario
+  bookingForm.classList.add("hidden");
+
+  // Limpiar campos del formulario
+  clientName.value = "";
+  clientEmail.value = "";
+  clientRUT.value = "";
+  clientPhone.value = "";
+
+  // Refrescar horas disponibles
+  daySelect.dispatchEvent(new Event("change"));
+
+} catch (err) {
+  console.error(err);
+  bookingMsg.textContent = "❌ Error al crear la reserva o enviar el correo";
+} finally {
+  confirmBtn.disabled = false;
+}
   });
 
   // ---------------- Admin login modal ----------------
