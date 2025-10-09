@@ -177,7 +177,6 @@ header.hero-banner {
 }
 
 .hero-overlay {
-  position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(31,60,136,0.60);
   width: 100%;
@@ -235,7 +234,7 @@ header.hero-banner {
 .about {
   padding: 50px 20px;
   text-align: center;
-  background: #fafdff;
+  background: #f5f7fa;
   border-bottom: 1px solid #e0e7ef;
 }
 
@@ -425,4 +424,86 @@ footer {
 
 .hidden {
   display: none;
+}
+
+/* --- NUESTROS PROFESIONALES --- */
+.team {
+  background: #fafdff;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.team h2 {
+  font-size: 2rem;
+  color: #1f3c88;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.team-intro {
+  color: #3a4a6b;
+  font-size: 1.1rem;
+  max-width: 650px;
+  margin: 0 auto 40px;
+}
+
+.team-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.team-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(31,60,136,0.07);
+  border: 1px solid #e0e7ef;
+  padding: 20px;
+  max-width: 260px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(31,60,136,0.12);
+}
+
+.team-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  border: 3px solid #1f3c88;
+}
+
+.team-card h3 {
+  font-size: 1.15rem;
+  color: #2a52be;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.team-card p {
+  color: #3a4a6b;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .team {
+    padding: 40px 12px;
+  }
+
+  .team-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .team-card {
+    width: 90%;
+    max-width: 320px;
+  }
 }
