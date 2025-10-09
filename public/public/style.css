@@ -1,0 +1,510 @@
+/* Botón de inscripción voluntario médico */
+.volunteer-btn {
+  display: inline-block;
+  margin-top: 18px;
+   background: #ff9800;
+  color: #fff;
+  font-weight: bold;
+  padding: 15px 38px;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(31,60,136,0.10);
+  transition: background 0.2s, box-shadow 0.2s;
+  font-size: 1.15rem;
+}
+.volunteer-btn:hover {
+   background: #fb8c00;
+  box-shadow: 0 4px 16px rgba(31,60,136,0.13);
+}
+@media (max-width: 700px) {
+  .volunteer-btn {
+    font-size: 1rem;
+    padding: 10px 16px;
+    margin-top: 12px;
+  }
+}
+/* Ocultar elementos con .hidden */
+.hidden {
+  display: none !important;
+}
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 700px) {
+  header.hero-banner {
+    min-height: 180px;
+    padding: 0;
+  }
+  .hero-content {
+    padding: 24px 8px;
+    text-align: center;
+  }
+  .hero-content h1 {
+    font-size: 1.3rem;
+  }
+  .hero-content p {
+    font-size: 1rem;
+  }
+  .cta-btn {
+    font-size: 1rem;
+    padding: 10px 18px;
+  }
+  .about {
+    padding: 18px 8px;
+  }
+  .features {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .feature {
+    padding: 12px 8px;
+    font-size: 1rem;
+  }
+  .booking-section {
+    padding: 18px 8px;
+    max-width: 100%;
+  }
+  #booking-form {
+    padding: 12px 8px;
+    font-size: 1rem;
+  }
+  #bookingModal .modal-content,
+  #adminModal .modal-content,
+  #doctorModal .modal-content {
+    max-width: 95vw;
+    padding: 18px 8px;
+    font-size: 1rem;
+  }
+  #closeBookingModal, #closeModal, #closeDoctorModal {
+    top: 6px; right: 10px;
+    font-size: 20px;
+  }
+  footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 8px;
+    font-size: 0.95rem;
+  }
+  /* Botones de login (Admin y Médico) */
+  .admin-btn, .doctor-btn {
+    display: inline-block;
+    font-size: 1.08rem;
+    font-weight: 600;
+    padding: 12px 28px;
+    margin: 6px 8px 0 0;
+    border-radius: 8px;
+    background: linear-gradient(90deg, #1f3c88 60%, #2a52be 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(31,60,136,0.10);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+  }
+  .admin-btn:hover, .doctor-btn:hover {
+    background: linear-gradient(90deg, #2a52be 60%, #1f3c88 100%);
+    box-shadow: 0 4px 16px rgba(31,60,136,0.18);
+  }
+  @media (max-width: 700px) {
+    .admin-btn, .doctor-btn {
+      font-size: 1rem;
+      padding: 10px 16px;
+      margin: 4px 0;
+    }
+  }
+  label, input, select, button {
+    font-size: 1rem;
+  }
+}
+/* MODAL DE CONFIRMACIÓN DE RESERVA */
+#bookingModal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+#bookingModal .modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px 28px 24px 28px;
+  box-shadow: 0 4px 24px rgba(31,60,136,0.13);
+  text-align: center;
+  max-width: 350px;
+  position: relative;
+}
+#bookingModal h3 {
+  color: #1f3c88;
+  margin-bottom: 12px;
+}
+#bookingModal p {
+  color: #2a52be;
+  font-size: 1.1rem;
+}
+#closeBookingModal {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 24px;
+  color: #1f3c88;
+  cursor: pointer;
+}
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* BODY */
+body {
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* HERO BANNER MODERNO */
+header.hero-banner {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  background: url('https://www.terapify.com/blog/wp-content/uploads/2025/09/psicologos-en-linea-gratis-1024x683.png') center center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(31,60,136,0.07);
+}
+
+.hero-overlay {
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(31,60,136,0.60);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  text-align: center;
+  padding: 40px 20px 50px 20px;
+}
+
+.hero-content h1 {
+  font-size: 2.8rem;
+  font-weight: 800;
+  margin-bottom: 18px;
+  letter-spacing: 0.5px;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(31,60,136,0.18);
+}
+
+.hero-content p {
+  font-size: 1.3rem;
+  margin-bottom: 28px;
+  color: #e8f0fe;
+  text-shadow: 0 1px 8px rgba(31,60,136,0.13);
+}
+
+.cta-btn {
+  background: #ff9800;
+  color: #fff;
+  padding: 15px 38px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.15rem;
+  box-shadow: 0 2px 8px rgba(31,60,136,0.10);
+  border: none;
+  transition: background 0.3s, box-shadow 0.3s;
+  display: inline-block;
+}
+
+.cta-btn:hover {
+  background: #fb8c00;
+  box-shadow: 0 4px 16px rgba(31,60,136,0.13);
+}
+
+/* ABOUT SECTION */
+/* ABOUT SECTION */
+.about {
+  padding: 50px 20px;
+  text-align: center;
+  background: #f5f7fa;
+  border-bottom: 1px solid #e0e7ef;
+}
+
+.about h2 {
+  font-size: 2.1rem;
+  margin-bottom: 20px;
+  color: #1f3c88;
+  font-weight: 700;
+}
+
+.about p {
+  max-width: 700px;
+  margin: 0 auto 40px;
+  font-size: 1.13rem;
+  color: #3a4a6b;
+}
+
+.features {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+  .feature {
+    background-color: #fff;
+    border-radius: 14px;
+    padding: 28px 20px;
+    width: 260px;
+    box-shadow: 0 4px 18px rgba(31,60,136,0.07);
+    border: 1px solid #e0e7ef;
+  }
+
+  .feature h3 {
+    color: #2a52be;
+    margin-bottom: 10px;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+/* BOOKING SECTION */
+  .booking-section {
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 34px 28px;
+    border-radius: 16px;
+    box-shadow: 0 4px 18px rgba(31,60,136,0.07);
+    border: 1px solid #e0e7ef;
+  }
+
+  .booking-section h2 {
+    text-align: center;
+    color: #1f3c88;
+    margin-bottom: 25px;
+    font-weight: 700;
+  }
+
+.booking-section label {
+  display: block;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 11px 13px;
+  margin-top: 5px;
+  border-radius: 7px;
+  border: 1px solid #b6c6e3;
+  font-size: 1rem;
+  background: #fafdff;
+}
+
+input:focus, select:focus {
+  border-color: #2a52be;
+  outline: none;
+  box-shadow: 0 0 7px rgba(42,82,190,0.13);
+}
+
+button {
+  background: linear-gradient(90deg, #1f3c88 0%, #2a52be 100%);
+  color: #fff;
+  border: none;
+  margin-top: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(31,60,136,0.10);
+}
+
+button:hover {
+  background: linear-gradient(90deg, #2a52be 0%, #1f3c88 100%);
+  box-shadow: 0 4px 16px rgba(31,60,136,0.13);
+}
+
+.hidden {
+  display: none;
+}
+
+.msg {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+/* TESTIMONIALS */
+/* TESTIMONIALS */
+
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(90deg, #2a52be 0%, #1f3c88 100%);
+  color: #fff;
+  font-size: 1rem;
+  letter-spacing: 0.2px;
+}
+
+/* RESPONSIVE */
+@media(max-width: 900px) {
+  header.hero-banner {
+    min-height: 220px;
+  }
+  .hero-content h1 {
+    font-size: 2rem;
+  }
+  .hero-content p {
+    font-size: 1.05rem;
+  }
+}
+
+@media(max-width:768px){
+  .features {
+    flex-direction: column;
+    align-items: center;
+  }
+  .feature {
+    width: 90%;
+    margin-bottom: 20px;
+  }
+}
+
+.admin-btn {
+  display: block;
+  margin: 10px auto 0;
+  padding: 8px 16px;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.admin-btn:hover {
+  background-color: #005fa3;
+}
+
+.modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top: 10px; right: 15px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+/* --- NUESTROS PROFESIONALES --- */
+.team {
+  background: #fafdff;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.team h2 {
+  font-size: 2rem;
+  color: #1f3c88;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.team-intro {
+  color: #3a4a6b;
+  font-size: 1.1rem;
+  max-width: 650px;
+  margin: 0 auto 40px;
+}
+
+.team-grid {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.team-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(31,60,136,0.07);
+  border: 1px solid #e0e7ef;
+  padding: 20px;
+  max-width: 260px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(31,60,136,0.12);
+}
+
+.team-card img {
+  width: 120px;        /* ancho fijo */
+  height: 120px;       /* alto fijo */
+  border-radius: 50%;
+  margin-bottom: 15px;
+  border: 3px solid #1f3c88;
+  object-fit: cover;   /* recorta la imagen manteniendo proporción */
+}
+
+.team-card h3 {
+  font-size: 1.15rem;
+  color: #2a52be;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.team-card p {
+  color: #3a4a6b;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .team {
+    padding: 40px 12px;
+  }
+
+  .team-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .team-card {
+    width: 90%;
+    max-width: 320px;
+  }
+}

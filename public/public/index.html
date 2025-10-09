@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reserva Salud Mental </title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header class="hero-banner">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <h1>Apoyo Profesional para tu Bienestar Integral</h1>
+        <p>Elige un profesional y reserva una hora gratuita.</p>
+        <a href="#booking" class="cta-btn">Reservar Ahora</a>
+        <a href="https://forms.gle/Wru7ieWmyVTTpE2J6" target="_blank" class="volunteer-btn">¿Eres Profesional de la
+          Salud?
+          Inscríbete como voluntario</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="about">
+    <h2>Sobre nuestra clínica</h2>
+    <p>Ofrecemos apoyo profesional y asesoramiento de manera gratuita y totalmente confiable. Contamos con un equipo de
+      voluntarios cualificados (psicólogos, terapeutas y otros especialistas de la salud) listos para ayudarte a mejorar
+      tu bienestar integral.</p>
+    <div class="features">
+      <div class="feature">
+        <h3>Profesionales Certificados de la Salud</h3>
+        <p>Contamos con expertos cualificados de diversas áreas de la salud. Terapeutas, psicólogos y profesionales con
+          formación rigurosa y experiencia comprobada.</p>
+      </div>
+      <div class="feature">
+        <h3>Atención personalizada</h3>
+        <p>Recibe el apoyo que necesitas desde la comodidad de tu espacio, sin sacrificar la calidez ni la
+          confidencialidad. Nuestro enfoque se centra en ti, asegurando un proceso totalmente a tu medida..</p>
+      </div>
+      <div class="feature">
+        <h3>Flexible y accesible</h3>
+        <p>Tienes la libertad de reservar las horas que estén disponibles, ajustándose perfectamente a tu agenda y
+          conveniencia personal.</p>
+      </div>
+    </div>
+  </section>
+  <div id="bookingModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeBookingModal" class="close">&times;</span>
+      <h3>¡Reserva exitosa!</h3>
+      <p>Tu hora ha sido reservada exitosamente.<br>Revisa tu correo para el enlace de la videollamada.</p>
+    </div>
+  </div>
+
+  <section class="team">
+    <h2>Nuestros Profesionales</h2>
+    <p class="team-intro">Conoce a parte del equipo que está colaborando con la salud mental de Chile.</p>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <img src="img\IMG_20251009_124458.jpg" alt="Profesional 1">
+        <h3>Bryan Paredes Ortiz</h3>
+        <p>Psicólogo con 8 años de experiencia, realizó atención a niños, niñas, adolescentes y adultos desde un enfoque
+          integrativo.
+          Abordo temas de ansiedad, depresión, bullying escolar , entre otros.</p>
+      </div>
+
+      <div class="team-card">
+        <img src="img\Fotografía.jpeg" alt="Profesional 2">
+        <h3>Maritza Godoy Campos</h3>
+        <p>Psicóloga egresada de la Universidad Católica del Maule. Poseo formación en neurodivergencia y conocimientos
+          en distintos trastornos de salud mental.
+          Trabajo con todas las edades, aunque tengo más experiencia con infancias y adolescencias debido a mi labor en
+          el ámbito educacional. Si necesitas ayuda, no dudes en contactarme."</p>
+      </div>
+
+      <div class="team-card">
+        <img src="https://via.placeholder.com/250x250" alt="Profesional 3">
+        <h3>Dr. Ricardo Gómez</h3>
+        <p>Médico general enfocado en atención primaria y prevención de trastornos emocionales.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <main id="booking">
+    <section class="booking-section">
+      <h2>Reserva tu hora</h2>
+
+      <label>Selecciona un profesional:
+        <select id="professionalSelect">
+          <option value="">--Elige un profesional--</option>
+        </select>
+      </label>
+
+      <div id="doctorInfo" style="margin-bottom: 18px; font-weight: 500; color: #1f3c88;"></div>
+
+      <label>Selecciona un día:
+        <input type="date" id="daySelect" disabled>
+      </label>
+
+      <div id="availableHoursInfo" style="margin-bottom: 10px; color: #2a52be;"></div>
+      <div id="hoursContainer"></div>
+
+      <div id="booking-form" class="hidden">
+        <h3>Confirmar reserva</h3>
+        <p id="slotText"></p>
+
+        <label>Tu nombre:
+          <input id="clientName" type="text" required>
+        </label>
+
+        <label>RUT:
+          <input id="clientRUT" type="text" placeholder="12345678-9" required>
+        </label>
+
+        <label>Email:
+          <input id="clientEmail" type="email" required>
+        </label>
+
+        <label>Teléfono:
+          <input id="clientPhone" type="tel" placeholder="+569XXXXXXXX" required>
+        </label>
+
+        <button id="confirmBtn">Reservar</button>
+        <button id="cancelBtn">Cancelar</button>
+        <p id="bookingMsg" class="msg"></p>
+      </div>
+    </section>
+  </main>
+
+
+
+  <footer>
+    <button id="adminLoginBtn" class="admin-btn">Admin</button>
+    <button id="doctorLoginBtn" class="doctor-btn">Profesional de la Salud</button>
+  </footer>
+
+  <!-- Modal de login Admin -->
+  <div id="adminModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeModal" class="close">&times;</span>
+      <h3>Login Admin</h3>
+      <label>Usuario: <input type="text" id="adminUser"></label>
+      <label>Contraseña: <input type="password" id="adminPass"></label>
+      <button id="loginBtn">Ingresar</button>
+      <p id="loginMsg"></p>
+    </div>
+  </div>
+  <!-- Modal de login Médico -->
+  <div id="doctorModal" class="modal hidden">
+    <div class="modal-content">
+      <span id="closeDoctorModal" class="close">&times;</span>
+      <h3>Login Profesionales</h3>
+      <label>Nombre: <input type="text" id="doctorUser"></label>
+      <label>Contraseña: <input type="password" id="doctorPass"></label>
+      <button id="doctorLoginBtnModal">Ingresar</button>
+      <p id="doctorLoginMsg"></p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Panel de Reservas Salud Mental</title>
+  <link rel="stylesheet" href="/admin.css">
+  <script src="/admin.js" defer></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    header { background: #1976d2; color: white; padding: 1rem; text-align: center; }
+    main { padding: 1rem; max-width: 1200px; margin: auto; }
+    section { margin-bottom: 2rem; border-bottom: 1px solid #ccc; padding-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    th, td { padding: 0.5rem; border: 1px solid #ccc; text-align: left; }
+    button { padding: 0.4rem 0.8rem; margin-top: 0.5rem; cursor: pointer; }
+    input, select { padding: 0.4rem; margin: 0.2rem 0; }
+    .admin-doctor input { margin-right: 0.5rem; }
+    #availabilityMsg { color: green; font-weight: bold; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Panel Admin - Reservas Salud Mental</h1>
+  </header>
+
+  <main>
+    <!-- FILTROS RESERVAS -->
+    <section>
+      <h3>Filtrar reservas</h3>
+      <label for="filterProfessional">Profesional:</label>
+      <select id="filterProfessional">
+        <option value="">Todos</option>
+      </select>
+
+      <label for="filterDate">Fecha:</label>
+      <input type="date" id="filterDate">
+    </section>
+
+    <!-- TABLA RESERVAS -->
+    <section>
+      <h3>Reservas</h3>
+      <table id="bookingsTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Profesional</th>
+            <th>Nombre</th>
+            <th>RUT</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Fecha y hora</th>
+            <th>Link Meet</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- AGREGAR RESERVA -->
+    <section>
+      <h3>Agregar reserva</h3>
+      <label>Nombre: <input type="text" id="newName"></label>
+      <label>RUT: <input type="text" id="newRUT" placeholder="12345678-9"></label>
+      <label>Teléfono: <input type="tel" id="newPhone" placeholder="+569XXXXXXXX"></label>
+      <label>Email: <input type="email" id="newEmail"></label>
+      <label>Profesional:
+        <select id="newProfessional"></select>
+      </label>
+      <label>Fecha y hora: <input type="datetime-local" id="newDatetime"></label>
+      <button id="addBookingBtn">Agregar reserva</button>
+    </section>
+
+    <!-- MODIFICAR DISPONIBILIDAD -->
+    <section>
+      <h3>Modificar disponibilidad de médicos</h3>
+      <label>Médico:
+        <select id="selectDoctor"></select>
+      </label>
+      <label>Fecha:
+        <input type="date" id="doctorDate">
+      </label>
+      <label>Horas disponibles (separadas por coma):</label>
+      <input type="text" id="doctorHours" placeholder="09:00,09:30,10:00,...">
+
+      <div id="deleteHourContainer">
+        <label for="selectHourDelete">Seleccionar hora a eliminar:</label>
+      </div>
+
+      <button id="updateAvailabilityBtn">Actualizar disponibilidad</button>
+      <button id="deleteHourBtn">Borrar hora seleccionada</button>
+      <p id="availabilityMsg"></p>
+    </section>
+
+    <!-- AGREGAR / ELIMINAR DOCTOR -->
+    <section class="admin-doctor">
+      <h3>Administrar médicos</h3>
+      <label for="selectDoctorAdmin">Seleccionar doctor:</label>
+      <select id="selectDoctorAdmin">
+        <option value="">--Selecciona un doctor--</option>
+      </select>
+
+      <input type="text" id="newDoctor" placeholder="Nombre del doctor">
+      <button id="addDoctorBtn">Crear Doctor</button>
+      <button id="deleteDoctorBtn">Eliminar Doctor</button>
+    </section>
+  </main>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Médico - Salud Mental</title>
+  <link rel="stylesheet" href="/style.css">
+  <style>
+    .doctor-login { max-width: 350px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(31,60,136,0.07); padding: 32px 24px; }
+    .doctor-login h2 { color: #1f3c88; margin-bottom: 18px; }
+    .doctor-login label { display: block; margin-bottom: 10px; font-weight: 500; }
+    .doctor-login input, .doctor-login select { width: 100%; padding: 10px; margin-bottom: 18px; border-radius: 6px; border: 1px solid #b6c6e3; }
+    .doctor-login button { width: 100%; background: #1f3c88; color: #fff; border: none; border-radius: 6px; padding: 12px; font-weight: bold; cursor: pointer; }
+    .doctor-login button:hover { background: #2a52be; }
+    .doctor-panel { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px rgba(31,60,136,0.07); padding: 32px 24px; }
+    .doctor-panel h2 { color: #1f3c88; margin-bottom: 18px; }
+    .doctor-panel table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    .doctor-panel th, .doctor-panel td { padding: 0.6rem; border: 1px solid #ccc; text-align: left; }
+    .doctor-panel th { background: #e8f0fe; color: #1f3c88; }
+    .logout-btn { float: right; background: #ff9800; color: #fff; border: none; border-radius: 5px; padding: 8px 16px; margin-bottom: 10px; cursor: pointer; }
+    .logout-btn:hover { background: #fb8c00; }
+  </style>
+</head>
+<body>
+  <div id="doctorLogin" class="doctor-login">
+    <h2>Ingreso Médico</h2>
+    <label for="doctorName">Selecciona tu nombre:</label>
+    <select id="doctorName"></select>
+  <label for="doctorPassword">Contraseña:</label>
+  <input type="password" id="doctorPassword" autocomplete="current-password">
+  <button id="doctorLoginBtn">Ingresar</button>
+  <p id="doctorLoginMsg" style="color:red;"></p>
+  </div>
+  <div id="doctorPanel" class="doctor-panel hidden">
+    <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+    <h2>Mis horas agendadas</h2>
+    <label for="filterDate">Filtrar por día:</label>
+    <input type="date" id="filterDate">
+    <table>
+      <thead>
+        <tr>
+          <th>Paciente</th>
+          <th>RUT</th>
+          <th>Email</th>
+          <th>Teléfono</th>
+          <th>Fecha y hora</th>
+          <th>Link Meet</th>
+        </tr>
+      </thead>
+      <tbody id="doctorBookings"></tbody>
+    </table>
+  </div>
+  <script src="doctor.js"></script>
+</body>
+</html>
