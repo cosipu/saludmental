@@ -124,7 +124,7 @@ professionalSelect.addEventListener("change", async () => {
   bookingMsg.textContent = "";
   selectedHour = null;
   doctorInfo.textContent = selectedProfessional
-    ? `Doctor seleccionado: ${selectedProfessional}`
+    ? `Profesional seleccionado: ${selectedProfessional}`
     : "";
   availableHoursInfo.innerHTML = ""; // usamos innerHTML para poder insertar la lista
 
